@@ -16,8 +16,9 @@ services:
         value: /etc/secrets/service-account.json
 
   # Frontend Service
-  - type: site
+  - type: web
     name: microfinance-frontend
+    env: static
     plan: free
     region: singapore
     buildCommand: cd frontend && npm install && npm run build
