@@ -77,9 +77,11 @@ server.use(
   })
 );
 
+const cors = require('cors');
+
 // Middlewares
+server.use(cors()); // Allow all origins for now (or specify frontend url)
 server.use(express.static("public"));
-server.use(express.static("client/build")); // Serve React build
 server.use(bodyParser.json({ limit: "5mb" }));
 server.use(bodyParser.urlencoded({ extended: true }));
 server.use(cookieParser());
@@ -87,7 +89,7 @@ server.use(cookieParser());
 server.use('/api', inactivityCheck);
 
 server.get("/", function (req, res) {
-  res.sendFile(__dirname + '/client/build/index.html');
+  res.send("Microfinance Backend is Running.");
 });
 
 // Routes
@@ -149,7 +151,7 @@ require('./routes/helper/copyGLCodes')(server);
 require('./routes/helper/createAdmin')(server);
 
 server.get("*", function (req, res) {
-  res.sendFile(__dirname + '/client/build/index.html');
+  res.status(404).send("API Endpoint Not Found");
 });
 
 server.listen(PORT, function () {

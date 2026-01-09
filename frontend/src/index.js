@@ -21,6 +21,11 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { Provider } from "react-redux";
 import store from "./store";
+import axios from "axios";
+
+if (process.env.REACT_APP_API_URL) {
+    axios.defaults.baseURL = process.env.REACT_APP_API_URL;
+}
 
 import "assets/css/nucleo-icons.css";
 import "react-notification-alert/dist/animate.css";

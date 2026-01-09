@@ -1,6 +1,6 @@
-/node_modules/
-/client/node_modules/
-/client/build/
-service-account.json
-.env
-client/.env
+/backend/node_modules/
+/frontend/node_modules/
+/frontend/build/
+backend/service-account.json
+backend/.env
+frontend/.env
