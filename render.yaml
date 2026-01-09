@@ -14,14 +14,15 @@ services:
       - key: GOOGLE_APPLICATION_CREDENTIALS
         value: /etc/secrets/service_account.json
 
-staticSites:
   # FRONTEND SERVICE
-  - name: microfinance-frontend
+  - type: web
+    name: microfinance-frontend
+    env: static
     region: singapore
     plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
-    publishDir: build
+    staticPublishDir: build
     envVars:
       - key: REACT_APP_API_URL
         fromService:
