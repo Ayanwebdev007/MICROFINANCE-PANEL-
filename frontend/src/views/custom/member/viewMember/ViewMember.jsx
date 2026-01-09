@@ -727,33 +727,33 @@ const ViewMembers = () => {
             headerName: "KYC ID",
             field: "id",
             cellRenderer: (params) => (
-              <div className="form-inline">
-                  {authStatus.accessLevel?.memberDelete ||
-                  authStatus.role === "admin" ||
-                  authStatus.role === "root" ? (
+                <div className="form-inline">
+                    {authStatus.accessLevel?.memberDelete ||
+                        authStatus.role === "admin" ||
+                        authStatus.role === "root" ? (
+                        <Button
+                            className="fa fa-trash btn-icon mr-2"
+                            color="danger"
+                            type="button"
+                            size="sm"
+                            onClick={() => handleDelete(params.data)}
+                        />
+                    ) : null}
                     <Button
-                      className="fa fa-trash btn-icon mr-2"
-                      color="danger"
-                      type="button"
-                      size="sm"
-                      onClick={() => handleDelete(params.data)}
-                    />
-                  ) : null}
-                  <Button
-                    color="link"
-                    size="sm"
-                    className="p-0 text-info"
-                    onClick={() => {
-                        navigate(`/member/view-members/member-details/${params.data.id}`, {
-                            state: {bankId: params.data.bankId}
-                        });
-                    }}
-                  >
-                      <span style={{userSelect: 'text', WebkitUserSelect: 'text', MozUserSelect: 'text', msUserSelect: 'text'}}>
-                          {params.data.id}
-                      </span>
-                  </Button>
-              </div>
+                        color="link"
+                        size="sm"
+                        className="p-0 text-info"
+                        onClick={() => {
+                            navigate(`/member/view-members/member-details/${params.data.id}`, {
+                                state: { bankId: params.data.bankId }
+                            });
+                        }}
+                    >
+                        <span style={{ userSelect: 'text', WebkitUserSelect: 'text', MozUserSelect: 'text', msUserSelect: 'text' }}>
+                            {params.data.id}
+                        </span>
+                    </Button>
+                </div>
             ),
             valueGetter: (params) => params.data.id,
             sortable: true,
@@ -773,80 +773,95 @@ const ViewMembers = () => {
         floatingFilter: true,
     };
 
+    const [lastVisible, setLastVisible] = useState(null);
+    const [hasMore, setHasMore] = useState(true);
+    const [searchText, setSearchText] = useState("");
+
     useEffect(() => {
-        const fetchMembers = async () => {
-            try {
-                setLoading(true);
-                const response = await fetchAllMembers();
-                if (response?.data?.success) {
-                    let members = response.data.data;
+        fetchMembers(true);
+    }, [prefillKycId, authStatus.bankId]);
 
-                    if (prefillKycId) {
-                        members = members.filter((m) => m.id === prefillKycId);
-                        setMessage(`Showing result for KYC ID: ${prefillKycId}`);
-                    } else {
-                        setMessage("All Members.");
-                    }
-
-                    setRowData(members);
-                } else {
-                    throw new Error(response.data.error || "Failed to load members");
-                }
-            } catch (error) {
-                const errorMessage = error.message || "Something went wrong.";
-                setAlert({
-                    display: true,
-                    color: "danger",
-                    message: errorMessage,
-                    autoDismiss: 7,
-                    place: "tc",
-                    timestamp: new Date().getTime(),
-                });
-                setMessage("Could not load member data.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchMembers();
-    }, [prefillKycId]);
-
-    const fetchAllMembers = async (bankId) => {
+    const fetchAllMembers = async (bankId, lastDocId, search) => {
         return await axios.get("/api/member/get-all-members", {
-            params: { bankId },
+            params: {
+                bankId,
+                lastVisible: lastDocId,
+                limit: 50,
+                search
+            }
         });
+    };
+
+    const fetchMembers = async (reset = false) => {
+        try {
+            setLoading(true);
+            const currentLastVisible = reset ? null : lastVisible;
+            const response = await fetchAllMembers(authStatus.bankId, currentLastVisible, searchText || prefillKycId);
+
+            if (response?.data?.success) {
+                const newMembers = response.data.data;
+                const nextLastVisible = response.data.lastVisible;
+
+                if (reset) {
+                    setRowData(newMembers);
+                } else {
+                    setRowData(prev => [...prev, ...newMembers]);
+                }
+
+                setLastVisible(nextLastVisible);
+                setHasMore(newMembers.length === 50);
+                setMessage(searchText ? `Search results for "${searchText}"` : "All Members");
+            } else {
+                if (reset) {
+                    setRowData([]);
+                    setHasMore(false);
+                    setMessage(response.data.error || "No members found");
+                }
+            }
+        } catch (error) {
+            setAlert({
+                display: true,
+                color: "danger",
+                message: error.message || "Failed to load members",
+                autoDismiss: 7,
+                place: "tc",
+                timestamp: new Date().getTime(),
+            });
+        } finally {
+            setLoading(false);
+        }
     };
 
     if (!fetched) {
         setFetched(true);
         axios
-          .get("/api/member/get-associated-branch-restrictive")
-          .then(function (value) {
-              if (value.data.success) {
-                  setBankDropDown(value.data.data);
-              } else {
-                  setAlert({
-                      color: "warning",
-                      message: value.data.error,
-                      autoDismiss: 7,
-                      place: "tc",
-                      display: true,
-                      sweetAlert: false,
-                      timestamp: Date.now().toLocaleString(),
-                  });
-              }
-          })
-          .catch(function (error) {
-              setAlert({
-                  color: "warning",
-                  message: error.toString(),
-                  autoDismiss: 7,
-                  place: "tc",
-                  display: true,
-                  sweetAlert: false,
-                  timestamp: Date.now().toLocaleString(),
-              });
-          });
+            .get("/api/member/get-associated-branch-restrictive")
+            .then(function (value) {
+                if (value.data.success) {
+                    setBankDropDown(value.data.data);
+                } else {
+                    setAlert({
+                        color: "warning",
+                        message: value.data.error,
+                        autoDismiss: 7,
+                        place: "tc",
+                        display: true,
+                        sweetAlert: false,
+                        timestamp: Date.now().toLocaleString(),
+                    });
+                }
+            })
+            .catch(function (error) {
+                setAlert({
+                    color: "warning",
+                    message: error.toString(),
+                    autoDismiss: 7,
+                    place: "tc",
+                    display: true,
+                    sweetAlert: false,
+                    timestamp: Date.now().toLocaleString(),
+                });
+            });
     }
 
     async function handleBankSelect(selectedOption) {
@@ -892,7 +907,7 @@ const ViewMembers = () => {
 
     const handleDelete = async (member) => {
         const confirmDelete = window.confirm(
-          `Are you sure you want to delete member: ${member.name} (KYC ID: ${member.id})?`
+            `Are you sure you want to delete member: ${member.name} (KYC ID: ${member.id})?`
         );
 
         if (!confirmDelete) return;
@@ -937,136 +952,136 @@ const ViewMembers = () => {
     };
 
     return (
-      <>
-          <div className="rna-container">
-              {alert.display && (
-                <CstNotification
-                  color={alert.color}
-                  message={alert.message}
-                  autoDismiss={alert.autoDismiss}
-                  place={alert.place}
-                  timestamp={alert.timestamp}
-                />
-              )}
-          </div>
+        <>
+            <div className="rna-container">
+                {alert.display && (
+                    <CstNotification
+                        color={alert.color}
+                        message={alert.message}
+                        autoDismiss={alert.autoDismiss}
+                        place={alert.place}
+                        timestamp={alert.timestamp}
+                    />
+                )}
+            </div>
 
-          <div className="content">
-              <Row>
-                  <Col md="12">
-                      <Card>
-                          <CardHeader>
-                              <CardTitle tag="h3">Branch Selection</CardTitle>
-                          </CardHeader>
-                          <CardBody>
-                              <Row>
-                                  <Col md="6">
-                                      <Label>Select a Branch</Label>
-                                      <FormGroup>
-                                          <Select
-                                            className="react-select info"
-                                            classNamePrefix="react-select"
-                                            name="bankSelect"
-                                            onChange={handleBankSelect}
-                                            options={bankDropDown}
-                                            placeholder="Choose branch..."
-                                          />
-                                      </FormGroup>
-                                  </Col>
-                              </Row>
-                          </CardBody>
-                      </Card>
-                  </Col>
-              </Row>
+            <div className="content">
+                <Row>
+                    <Col md="12">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle tag="h3">Branch Selection</CardTitle>
+                            </CardHeader>
+                            <CardBody>
+                                <Row>
+                                    <Col md="6">
+                                        <Label>Select a Branch</Label>
+                                        <FormGroup>
+                                            <Select
+                                                className="react-select info"
+                                                classNamePrefix="react-select"
+                                                name="bankSelect"
+                                                onChange={handleBankSelect}
+                                                options={bankDropDown}
+                                                placeholder="Choose branch..."
+                                            />
+                                        </FormGroup>
+                                    </Col>
+                                </Row>
+                            </CardBody>
+                        </Card>
+                    </Col>
+                </Row>
 
-              <Row>
-                  <Col md="12" className="mb-5">
-                      <Card>
-                          {/*<CardHeader>*/}
-                          {/*    <CardTitle tag="h4">Member List</CardTitle>*/}
-                          {/*    <div*/}
-                          {/*        style={{*/}
-                          {/*            marginBottom: "1rem",*/}
-                          {/*            textAlign: "center",*/}
-                          {/*            fontStyle: "italic",*/}
-                          {/*            color: loading ? "gray" : "green",*/}
-                          {/*        }}*/}
-                          {/*    >*/}
-                          {/*        <Spinner color="info" hidden={!loading} />{" "}*/}
-                          {/*        {loading ? "Loading members..." : message}*/}
-                          {/*    </div>*/}
-                          {/*    <Button*/}
-                          {/*      color="success"*/}
-                          {/*      size="sm"*/}
-                          {/*      onClick={exportToCSV}*/}
-                          {/*      style={{ marginLeft: "10px" }}*/}
-                          {/*    >*/}
-                          {/*        Export to CSV*/}
-                          {/*    </Button>*/}
+                <Row>
+                    <Col md="12" className="mb-5">
+                        <Card>
+                            {/*<CardHeader>*/}
+                            {/*    <CardTitle tag="h4">Member List</CardTitle>*/}
+                            {/*    <div*/}
+                            {/*        style={{*/}
+                            {/*            marginBottom: "1rem",*/}
+                            {/*            textAlign: "center",*/}
+                            {/*            fontStyle: "italic",*/}
+                            {/*            color: loading ? "gray" : "green",*/}
+                            {/*        }}*/}
+                            {/*    >*/}
+                            {/*        <Spinner color="info" hidden={!loading} />{" "}*/}
+                            {/*        {loading ? "Loading members..." : message}*/}
+                            {/*    </div>*/}
+                            {/*    <Button*/}
+                            {/*      color="success"*/}
+                            {/*      size="sm"*/}
+                            {/*      onClick={exportToCSV}*/}
+                            {/*      style={{ marginLeft: "10px" }}*/}
+                            {/*    >*/}
+                            {/*        Export to CSV*/}
+                            {/*    </Button>*/}
 
-                          {/*</CardHeader>*/}
-                          <CardHeader>
-                              <Row className="align-items-center">
+                            {/*</CardHeader>*/}
+                            <CardHeader>
+                                <Row className="align-items-center">
 
-                                  {/* Column 1 : Title */}
-                                  <Col md="4">
-                                      <CardTitle
-                                          tag="h4"
-                                          className="mb-0 float-xl-left float-lg-left float-md-left"
-                                          style={{textAlign:"center"}}>
-                                          Member List
-                                      </CardTitle>
-                                  </Col>
+                                    {/* Column 1 : Title */}
+                                    <Col md="4">
+                                        <CardTitle
+                                            tag="h4"
+                                            className="mb-0 float-xl-left float-lg-left float-md-left"
+                                            style={{ textAlign: "center" }}>
+                                            Member List
+                                        </CardTitle>
+                                    </Col>
 
-                                  {/* Column 2 : Loading / Message */}
-                                  <Col md="4" className="text-center">
-                                      <div
-                                          style={{
-                                              fontStyle: "italic",
-                                              color: loading ? "gray" : "green",
-                                          }}
-                                      >
-                                          <Spinner color="info" size="sm" hidden={!loading} />{" "}
-                                          {loading ? "Loading members..." : message}
-                                      </div>
-                                  </Col>
+                                    {/* Column 2 : Loading / Message */}
+                                    <Col md="4" className="text-center">
+                                        <div
+                                            style={{
+                                                fontStyle: "italic",
+                                                color: loading ? "gray" : "green",
+                                            }}
+                                        >
+                                            <Spinner color="info" size="sm" hidden={!loading} />{" "}
+                                            {loading ? "Loading members..." : message}
+                                        </div>
+                                    </Col>
 
-                                  {/* Column 3 : Export Button */}
-                                  <Col md="4" >
-                                     <div className="text-center text-md-right text-lg-right text-xl-right">
-                                         <Button
+                                    {/* Column 3 : Export Button */}
+                                    <Col md="4" >
+                                        <div className="text-center text-md-right text-lg-right text-xl-right">
+                                            <Button
 
-                                             color="success"
-                                             size="sm"
-                                             onClick={exportToCSV}
-                                         >
-                                             Export to CSV
-                                         </Button>
-                                     </div>
-                                  </Col>
+                                                color="success"
+                                                size="sm"
+                                                onClick={exportToCSV}
+                                            >
+                                                Export to CSV
+                                            </Button>
+                                        </div>
+                                    </Col>
 
-                              </Row>
-                          </CardHeader>
+                                </Row>
+                            </CardHeader>
 
-                          <CardBody style={{ height: window.innerHeight - 300 }}>
+                            <CardBody style={{ height: window.innerHeight - 300 }}>
 
 
-                              <AgGridReact
-                                ref={gridRef}
-                                rowData={rowData}
-                                columnDefs={COLUMN_DEFINITIONS}
-                                defaultColDef={defaultColDef}
-                                rowHeight={35}
-                                headerHeight={40}
-                                animateRows={true}
-                                overlayNoRowsTemplate={'<span>No members found</span>'}
-                                enableCellTextSelection={true}
-                              />
-                          </CardBody>
-                      </Card>
-                  </Col>
-              </Row>
-          </div>
-      </>
+                                <AgGridReact
+                                    ref={gridRef}
+                                    rowData={rowData}
+                                    columnDefs={COLUMN_DEFINITIONS}
+                                    defaultColDef={defaultColDef}
+                                    rowHeight={35}
+                                    headerHeight={40}
+                                    animateRows={true}
+                                    overlayNoRowsTemplate={'<span>No members found</span>'}
+                                    enableCellTextSelection={true}
+                                />
+                            </CardBody>
+                        </Card>
+                    </Col>
+                </Row>
+            </div>
+        </>
     );
 };
 

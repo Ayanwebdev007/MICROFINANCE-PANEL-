@@ -1,11 +1,12 @@
-const {getFirestore} = require('firebase-admin/firestore');
+const { getFirestore } = require('firebase-admin/firestore');
 const db = getFirestore();
+const { generateKeywords } = require('../../utils/searchUtils');
 
 module.exports = app => {
     app.post('/api/advisor/add-new-advisor', async function (req, res) {
         const token = req.user; // Get user from the middleware
 
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
         const systemDate = new Date().toISOString().slice(0, 10);
 
         try {
@@ -30,21 +31,14 @@ module.exports = app => {
 
                 const kycId = `${iterator.data().prefix || ''}${iterator.data().value}`;
                 const kycRef = db.collection(token.bankId).doc('kyc').collection('advisor-kyc').doc(kycId);
-
-                if (isNaN(parseInt(iterator.data().value))) {
-                    return res.send({error: 'Invalid iterator value. Please contact support.'});
-                }
-
-                await t.update(iteratorRef, {
-                    value: (parseInt(iterator.data().value) + 1).toString().padStart(iterator.data().value.length, '0'),
-                    isUsed: true
-                });
+                const searchKeywords = generateKeywords(`${kycId} ${req.body.name} ${req.body.phone} ${req.body.aadhar} ${req.body.pan}`);
 
                 await t.set(kycRef, {
                     ...req.body,
                     upLine,
                     author: token.email,
                     createdAt: new Date(),
+                    searchKeywords,
                 });
                 if (parseFloat(req.body.fee) > 0) {
                     const transactionRef = db.collection(token.bankId).doc('pi').collection('voucher').doc(`${transactionId}`);
@@ -63,10 +57,10 @@ module.exports = app => {
                         author: token.email,
                     });
                 }
-                res.send({success: `Advisor KYC created successfully with Id: ${kycId}`});
+                res.send({ success: `Advisor KYC created successfully with Id: ${kycId}` });
             });
         } catch (e) {
-            res.send({error: 'Failed to create Advisor KYC'});
+            res.send({ error: 'Failed to create Advisor KYC' });
             console.log('KYC Creation failure:', e);
         }
     });
@@ -74,7 +68,7 @@ module.exports = app => {
     app.post('/api/advisor/update-advisor', async function (req, res) {
         const token = req.user; // Get user from the middleware
 
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
 
         try {
             await db.runTransaction(async (t) => {
@@ -85,16 +79,19 @@ module.exports = app => {
                     upLine.push(...referrerInfo.data().upLine, req.body.referrer);
                 }
                 const kycRef = db.collection(token.bankId).doc('kyc').collection('advisor-kyc').doc(req.body.id);
+                const searchKeywords = generateKeywords(`${req.body.id} ${req.body.name} ${req.body.phone} ${req.body.aadhar} ${req.body.pan}`);
+
                 await t.update(kycRef, {
                     ...req.body,
                     upLine,
                     updatedBy: token.email,
                     updatedAt: new Date(),
+                    searchKeywords,
                 });
             });
-            res.send({success: `Advisor KYC updated successfully`});
+            res.send({ success: `Advisor KYC updated successfully` });
         } catch (e) {
-            res.send({error: 'Failed to create customer KYC'});
+            res.send({ error: 'Failed to create customer KYC' });
             console.log('KYC Creation failure:', e);
         }
 
@@ -103,18 +100,18 @@ module.exports = app => {
     app.get('/api/advisor/get-advisor-list', async function (req, res) {
         const token = req.user; // Get user from the middleware
 
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
         try {
             const advisorList = [];
             const advisorRef = db.collection(token.bankId).doc('kyc').collection('advisor-kyc');
             const advisorSnapshot = await advisorRef.get();
             advisorSnapshot.forEach((doc) => {
-                advisorList.push({...doc.data(), id: doc.id});
+                advisorList.push({ ...doc.data(), id: doc.id });
             });
-            res.send({success: 'Successfully fetched data', advisorList});
+            res.send({ success: 'Successfully fetched data', advisorList });
         } catch (error) {
             console.error('Error fetching advisor list:', error);
-            res.send({error: 'Failed to fetch advisor list. Try again...'});
+            res.send({ error: 'Failed to fetch advisor list. Try again...' });
         }
     });
 }

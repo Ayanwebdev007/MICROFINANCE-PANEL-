@@ -21,27 +21,17 @@ async function seedMasterData() {
         // but deeper logic might expect fields. 
         // SAFEST BET: Initialize with a generic structure or at least an empty object so .data() is not undefined.
 
-        const masterGlRef = db.collection('admin').doc('master-data').collection('gl_code').doc('value');
+        const glCodes = [
+            { code: '14301', head: 'SAVINGS DEPOSIT(NON MEMBERS)', category: 'liability' },
+            { code: '14306', head: 'THRIFT FUND SAVINGS ( NONMEMBER)', category: 'liability' },
+            { code: '23315', head: 'SHORT TERM PERSONAL LOAN - CURRENT', category: 'asset' },
+            { code: '23105', head: 'SHORT TERM GROUP LOAN - CURRENT', category: 'asset' }
+        ];
 
-        // Check if it exists first
-        const doc = await masterGlRef.get();
-        if (doc.exists) {
-            console.log('Master GL Data already exists. Skipping.');
-            return;
+        for (const gl of glCodes) {
+            const docRef = db.collection('admin').doc('master-data').collection('gl_codes').doc(gl.code);
+            await docRef.set({ ...gl, seeded_by: 'antigravity_fix' });
         }
-
-        // Creating a dummy GL structure. 
-        // Real tracking would require knowing the exact GL schema, but for "getting it running",
-        // providing a valid object is the first step.
-        const dummyGLData = {
-            assets: {},
-            liabilities: {},
-            income: {},
-            expenses: {},
-            seeded_by: 'antigravity_fix'
-        };
-
-        await masterGlRef.set(dummyGLData);
         console.log('Master GL Data seeded successfully!');
 
     } catch (error) {

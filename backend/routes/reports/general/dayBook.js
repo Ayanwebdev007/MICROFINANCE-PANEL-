@@ -1,11 +1,12 @@
-const { getFirestore} = require('firebase-admin/firestore');
+const { getFirestore } = require('firebase-admin/firestore');
 const db = getFirestore();
+const transactionService = require('../../../services/transactionService');
 
-module.exports = app=> {
-    app.get('/api/reports/general/day-book-v2/:date', async function (req, res){
+module.exports = app => {
+    app.get('/api/reports/general/day-book-v2/:date', async function (req, res) {
         const transactionDate = req.params.date;
         const token = req.user;
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
 
         try {
             const transObj = {};
@@ -17,97 +18,64 @@ module.exports = app=> {
                 debitAmount: 0,
                 creditAmount: 0,
             };
-    
-            const dayBookTrans = await db.collection(token.bankId).doc('transaction').collection(transactionDate).get();
-            dayBookTrans.forEach(function (transaction){
-                if (transaction.data().type === 'credit'){
-                    totalSumObj.creditAmount += parseFloat(transaction.data().amount);
-                    if (transObj[transaction.data().glCode]){
-                        transObj[transaction.data().glCode].creditAmount += parseFloat(transaction.data().amount);
-                        transObj[transaction.data().glCode].transactions.push({details: transaction.data(), id: transaction.id});
-                        if (transaction.data().method === 'cash'){
-                            transObj[transaction.data().glCode].cashCreditAmount += parseFloat(transaction.data().amount);
-                            totalSumObj.cashCreditAmount += parseFloat(transaction.data().amount);
-                        }else {
-                            transObj[transaction.data().glCode].transferCreditAmount += parseFloat(transaction.data().amount);
-                            totalSumObj.transferCreditAmount += parseFloat(transaction.data().amount);
-                        }
-                    }else {
-                        if (transaction.data().method === 'cash'){
-                            transObj[transaction.data().glCode] = {
-                                glCode: transaction.data().glCode,
-                                glHead: transaction.data().glHead,
-                                debitAmount: 0,
-                                cashDebitAmount: 0,
-                                transferDebitAmount: 0,
-                                creditAmount: parseFloat(transaction.data().amount),
-                                cashCreditAmount: parseFloat(transaction.data().amount),
-                                transferCreditAmount: 0,
-                                transactions: [{details: transaction.data(), id: transaction.id}]
-                            };
-                            totalSumObj.cashCreditAmount += parseFloat(transaction.data().amount);
-                        }else {
-                            transObj[transaction.data().glCode] = {
-                                glCode: transaction.data().glCode,
-                                glHead: transaction.data().glHead,
-                                debitAmount: 0,
-                                cashDebitAmount: 0,
-                                transferDebitAmount: 0,
-                                creditAmount: parseFloat(transaction.data().amount),
-                                cashCreditAmount: 0,
-                                transferCreditAmount: parseFloat(transaction.data().amount),
-                                transactions: [{details: transaction.data(), id: transaction.id}]
-                            };
-                            totalSumObj.transferCreditAmount += parseFloat(transaction.data().amount);
-                        }
+
+            // Fetch for a single day using the range utility
+            const transactions = await transactionService.getTransactionsByRange(token.bankId, transactionDate, transactionDate);
+
+            transactions.forEach(function (data) {
+                const amount = parseFloat(data.amount) || 0;
+                const glCode = data.glCode;
+                const glHead = data.glHead;
+                const method = data.method;
+
+                if (data.type === 'credit') {
+                    totalSumObj.creditAmount += amount;
+                    if (!transObj[glCode]) {
+                        transObj[glCode] = {
+                            glCode, glHead,
+                            debitAmount: 0, cashDebitAmount: 0, transferDebitAmount: 0,
+                            creditAmount: 0, cashCreditAmount: 0, transferCreditAmount: 0,
+                            transactions: []
+                        };
                     }
-                }else {
-                    totalSumObj.debitAmount += parseFloat(transaction.data().amount);
-                    if (transObj[transaction.data().glCode]){
-                        transObj[transaction.data().glCode].debitAmount += parseFloat(transaction.data().amount);
-                        transObj[transaction.data().glCode].transactions.push({details: transaction.data(), id: transaction.id});
-                        if (transaction.data().method === 'cash'){
-                            transObj[transaction.data().glCode].cashDebitAmount += parseFloat(transaction.data().amount);
-                            totalSumObj.cashDebitAmount += parseFloat(transaction.data().amount);
-                        }else {
-                            transObj[transaction.data().glCode].transferDebitAmount += parseFloat(transaction.data().amount);
-                            totalSumObj.transferDebitAmount += parseFloat(transaction.data().amount);
-                        }
-                    }else {
-                        if (transaction.data().method === 'cash'){
-                            transObj[transaction.data().glCode] = {
-                                glCode: transaction.data().glCode,
-                                glHead: transaction.data().glHead,
-                                creditAmount: 0,
-                                cashCreditAmount: 0,
-                                transferCreditAmount: 0,
-                                debitAmount: parseFloat(transaction.data().amount),
-                                cashDebitAmount: parseFloat(transaction.data().amount),
-                                transferDebitAmount: 0,
-                                transactions: [{details: transaction.data(), id: transaction.id}]
-                            };
-                            totalSumObj.cashDebitAmount += parseFloat(transaction.data().amount);
-                        }else {
-                            transObj[transaction.data().glCode] = {
-                                glCode: transaction.data().glCode,
-                                glHead: transaction.data().glHead,
-                                creditAmount: 0,
-                                cashCreditAmount: 0,
-                                transferCreditAmount: 0,
-                                debitAmount: parseFloat(transaction.data().amount),
-                                cashDebitAmount: 0,
-                                transferDebitAmount: parseFloat(transaction.data().amount),
-                                transactions: [{details: transaction.data(), id: transaction.id}]
-                            };
-                            totalSumObj.transferDebitAmount += parseFloat(transaction.data().amount);
-                        }
+
+                    transObj[glCode].creditAmount += amount;
+                    transObj[glCode].transactions.push({ details: data, id: data.id });
+
+                    if (method === 'cash') {
+                        transObj[glCode].cashCreditAmount += amount;
+                        totalSumObj.cashCreditAmount += amount;
+                    } else {
+                        transObj[glCode].transferCreditAmount += amount;
+                        totalSumObj.transferCreditAmount += amount;
+                    }
+                } else {
+                    totalSumObj.debitAmount += amount;
+                    if (!transObj[glCode]) {
+                        transObj[glCode] = {
+                            glCode, glHead,
+                            debitAmount: 0, cashDebitAmount: 0, transferDebitAmount: 0,
+                            creditAmount: 0, cashCreditAmount: 0, transferCreditAmount: 0,
+                            transactions: []
+                        };
+                    }
+
+                    transObj[glCode].debitAmount += amount;
+                    transObj[glCode].transactions.push({ details: data, id: data.id });
+
+                    if (method === 'cash') {
+                        transObj[glCode].cashDebitAmount += amount;
+                        totalSumObj.cashDebitAmount += amount;
+                    } else {
+                        transObj[glCode].transferDebitAmount += amount;
+                        totalSumObj.transferDebitAmount += amount;
                     }
                 }
             });
-            res.send({success: Object.values(transObj), totalSum: totalSumObj});
+            res.send({ success: Object.values(transObj), totalSum: totalSumObj });
         } catch (error) {
             console.log(error)
-            res.send({error: "something went wrong"})
+            res.send({ error: "something went wrong" })
         }
     });
 }

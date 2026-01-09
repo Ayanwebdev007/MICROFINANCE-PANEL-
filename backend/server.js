@@ -167,8 +167,8 @@ require('./routes/admin/society')(server);
 require('./routes/mobileApp/userSignup')(server);
 require('./routes/mobileApp/transactions')(server);
 
-require('./routes/tools/branch')(server);
-require('./routes/tools/branchUser')(server);
+require('./routes/admin/branch')(server);
+require('./routes/admin/branchUser')(server);
 require('./routes/tools/cibiAPI')(server);
 require('./routes/tools/iterator')(server);
 require('./routes/tools/employee')(server);

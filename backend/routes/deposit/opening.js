@@ -1,6 +1,7 @@
 const { getFirestore } = require('firebase-admin/firestore');
 
 const db = getFirestore();
+const { generateKeywords } = require('../../utils/searchUtils');
 
 module.exports = app => {
     app.post('/api/deposit/account-opening', async function (req, res) {
@@ -31,7 +32,7 @@ module.exports = app => {
                 const kycInfo = await t.get(kycRef);
 
                 if (isNaN(parseInt(iteratorInfo.data().value))) {
-                    return res.send({error: 'Invalid iterator value. Please contact support.'});
+                    return res.send({ error: 'Invalid iterator value. Please contact support.' });
                 }
 
                 await t.update(iteratorRef, {
@@ -62,6 +63,7 @@ module.exports = app => {
                         createdAt: new Date(),
                         updatedAt: new Date(),
                         author: token.email,
+                        searchKeywords: generateKeywords(`${accountNumber} ${req.body.memberId} ${req.body.memberName}`)
                     });
                 } else if (req.body.accountType === 'cash-certificate' || req.body.accountType === 'fixed-deposit' || req.body.accountType === 'recurring-deposit' || req.body.accountType === 'mis-deposit') {
                     await t.set(accountRef, {
@@ -87,6 +89,7 @@ module.exports = app => {
                         closed: false,
                         createdAt: new Date(),
                         updatedAt: new Date(),
+                        searchKeywords: generateKeywords(`${accountNumber} ${req.body.memberId} ${req.body.memberName}`)
                     });
                 }
                 if (parseInt(req.body.amount) > 0) {

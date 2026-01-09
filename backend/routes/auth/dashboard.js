@@ -1,10 +1,10 @@
-const {getFirestore, AggregateField} = require('firebase-admin/firestore');
+const { getFirestore, AggregateField } = require('firebase-admin/firestore');
 const db = getFirestore();
 
 module.exports = app => {
     app.get('/api/auth/dashboard-counts', async function (req, res) {
         const token = req.user;
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
 
         const systemDate = new Date().toISOString().slice(0, 10);
         const otherDepositAccountTypes = ['thrift-fund', 'cash-certificate', 'fixed-deposit', 'recurring-deposit', 'daily-savings', 'mis-deposit'];
@@ -76,23 +76,17 @@ module.exports = app => {
                 totalGroupLoan += pendingLoan;
             });
 
+            const systemDate = new Date().toISOString().slice(0, 10);
+            const dailyStatsRef = db.collection(token.bankId).doc('consolidated').collection('daily_stats').doc(systemDate);
+            const dailyStatsInfo = await dailyStatsRef.get();
+            const dailyStats = dailyStatsInfo.data() || {};
+
             const dayBookRef = db.collection(token.bankId).doc('scheduler').collection('daily-book').doc('value');
             const dayBookInfo = await dayBookRef.get();
             const dayBookData = dayBookInfo.data() || {};
             const performanceObj = dayBookData.performanceObj || {};
 
-            let cashInHand = dayBookData.cashInHand || 0;
-
-            // Get DayBook Data
-            const dayBookTrans = await db.collection(token.bankId).doc('transaction').collection(systemDate).get();
-            dayBookTrans.forEach(function (transaction) {
-                // Get Deposit Transaction Amounts
-                if (transaction.data().type === 'credit') {
-                    cashInHand += parseFloat(transaction.data().amount);
-                } else {
-                    cashInHand -= parseFloat(transaction.data().amount);
-                }
-            });
+            let cashInHand = (dayBookData.cashInHand || 0) + (dailyStats.cashInHand || 0);
 
             // Get Balance with other Bank
             const bankBalanceRef = await db.collection(token.bankId).doc('balance');
@@ -121,7 +115,7 @@ module.exports = app => {
             });
         } catch (error) {
             console.log("dashboard details error: ", error);
-            res.send({error: "Failed to fetch dashboard details. try again..."})
+            res.send({ error: "Failed to fetch dashboard details. try again..." })
 
         }
 
@@ -236,12 +230,12 @@ module.exports = app => {
             });
         }
 
-        res.send({success: 'Success'});
+        res.send({ success: 'Success' });
     });
 
     app.get('/api/wallet/balance', async function (req, res) {
         const token = req.user;
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
 
         try {
             const mainBranchRef = db.collection('admin').doc('organization').collection('banks').doc(token.bankId);
@@ -251,10 +245,10 @@ module.exports = app => {
             const walletBalance = await db.collection(mainBranchId).doc('wallet').get();
             const walletBalanceData = walletBalance.data() || {};
             const walletBalanceAmount = walletBalanceData.balance || 0;
-            res.send({success: 'Successfully fetched wallet balance', walletBalanceAmount: walletBalanceAmount});
+            res.send({ success: 'Successfully fetched wallet balance', walletBalanceAmount: walletBalanceAmount });
         } catch (error) {
             console.log("wallet balance error: ", error);
-            res.send({error: "Failed to fetch walet balance. try again..."})
+            res.send({ error: "Failed to fetch walet balance. try again..." })
 
         }
     });

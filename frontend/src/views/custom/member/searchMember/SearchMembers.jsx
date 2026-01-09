@@ -38,11 +38,6 @@ import CstNotification from "../../components/CstNotification";
 
 const SearchMembers = () => {
   const [userInput, setUserInput] = React.useState({
-    parameter: '',
-    value: '',
-  });
-  const [cstError, setCstError] = React.useState({
-    parameter: '',
     value: '',
   });
   const [progressbar, setProgressbar] = React.useState(false);
@@ -57,112 +52,98 @@ const SearchMembers = () => {
   });
   const [rowData, setRowData] = React.useState([]);
   const [colDefs, setColDefs] = React.useState([
-    {field: "id", headerName: "KYC ID"},
-    {field: "name", headerName: "NAME"},
-    {field: "guardian", headerName: "FATHER/MOTHER/SPOUSE"},
-    {field: "joiningDate", headerName: "JOINING DATE"},
-    {field: "Address", headerName: "ADDRESS"},
-    {field: "phone", headerName: "PHONE NUMBER"},
-    {field: "aadhar", headerName: "AADHAR NUMBER"},
-    {field: "pan", headerName: "PAN NUMBER"},
+    { field: "id", headerName: "KYC ID", width: 120 },
+    { field: "name", headerName: "NAME", minWidth: 200 },
+    { field: "guardian", headerName: "FATHER/MOTHER/SPOUSE", minWidth: 200 },
+    { field: "joiningDate", headerName: "JOINING DATE", width: 150 },
+    { field: "phone", headerName: "PHONE NUMBER", width: 150 },
+    { field: "aadhar", headerName: "AADHAR NUMBER", width: 150 },
+    { field: "pan", headerName: "PAN NUMBER", width: 150 },
+    { field: "Address", headerName: "ADDRESS", minWidth: 250 },
   ]);
   const defaultColDef = {
     filter: true,
-    floatingFilter: true
+    floatingFilter: true,
+    resizable: true,
+    sortable: true
   }
 
-  async function onSubmit(){
-    const inputValid = validateInput(userInput);
-    if(inputValid){
-      try {
-        setProgressbar(true);
-        const submitData = await axios.post('/api/member/search-members', userInput);
-        if(submitData.data.success){
-          setRowData(submitData.data.data);
-        }else {
-          setAlert({
-            color: 'warning',
-            message: submitData.data.error,
-            autoDismiss: 7,
-            place: 'tc',
-            display: true,
-            sweetAlert: false,
-            timestamp: new Date().getTime(),
-          });
-        }
-        setProgressbar(false);
-      }catch (e) {
+  async function onSubmit(e) {
+    if (e) e.preventDefault();
+    if (!userInput.value) {
+      return setAlert({
+        color: 'warning',
+        message: 'Please enter search value (Name, ID, Phone, etc.)',
+        autoDismiss: 5,
+        place: 'tc',
+        display: true,
+        sweetAlert: false,
+        timestamp: new Date().getTime(),
+      });
+    }
+
+    try {
+      setProgressbar(true);
+      const submitData = await axios.post('/api/member/search-members', { value: userInput.value });
+      if (submitData.data.success) {
+        setRowData(submitData.data.data);
+      } else {
         setAlert({
-          color: 'danger',
-          message: e.toLocaleString(),
+          color: 'warning',
+          message: submitData.data.error,
           autoDismiss: 7,
           place: 'tc',
           display: true,
           sweetAlert: false,
           timestamp: new Date().getTime(),
         });
+        setRowData([]);
       }
+      setProgressbar(false);
+    } catch (e) {
+      setProgressbar(false);
+      setAlert({
+        color: 'danger',
+        message: e.toLocaleString(),
+        autoDismiss: 7,
+        place: 'tc',
+        display: true,
+        sweetAlert: false,
+        timestamp: new Date().getTime(),
+      });
     }
-  }
-
-  function validateInput(inputValue) {
-    let temp = {};
-    let isValid = true;
-    if (!inputValue.parameter){
-      temp = {...temp, parameter: 'this is required'};
-      isValid = false;
-    }
-    if (!inputValue.value){
-      temp = {...temp, value: 'this is required'};
-      isValid = false;
-    }
-    setCstError(temp);
-    return isValid;
   }
 
   return (
     <>
       <div className="rna-container">
-        {alert.display && <CstNotification color={alert.color} message={alert.message} autoDismiss={alert.autoDismiss} place={alert.place} timestamp={alert.timestamp}/>}
+        {alert.display && <CstNotification color={alert.color} message={alert.message} autoDismiss={alert.autoDismiss} place={alert.place} timestamp={alert.timestamp} />}
       </div>
       <div className="content">
         <Row>
-          <Col>
+          <Col md={12}>
             <Card>
+              <CardHeader>
+                <CardTitle tag="h4">Member Global Search</CardTitle>
+                <p className="category">Search by Name, ID, Phone, Aadhar, or PAN</p>
+              </CardHeader>
               <CardBody>
-                <Form>
-                  <Row>
-                    <Col md={3}>
-                      <Label>Search By</Label>
+                <Form onSubmit={onSubmit}>
+                  <Row className="align-items-center">
+                    <Col md={8}>
                       <FormGroup>
-                        <Input type="select" name="select" id="parameterSelect"
-                               value={userInput.parameter}
-                               onChange={(event) => setUserInput({...userInput, parameter: event.target.value})}
-                        >
-                          <option value={''}>Select search criteria</option>
-                          <option value={'name'}>Name</option>
-                          <option value={'phone'}>Phone Number</option>
-                          <option value={'aadhar'}>Aadhar Number</option>
-                          <option value={'pan'}>PAN Number</option>
-                        </Input>
-                        <p style={{color: 'red'}}>{cstError.parameter}</p>
+                        <Input
+                          type={'text'}
+                          placeholder="Type at least 3 characters to search..."
+                          value={userInput.value}
+                          onChange={(event) => setUserInput({ value: event.target.value })}
+                        />
                       </FormGroup>
                     </Col>
-                    <Col md={3}>
-                      <Label>Search Value</Label>
-                      <FormGroup>
-                        <Input type={'text'} value={userInput.value}
-                               onChange={(event) => setUserInput({...userInput, value: event.target.value})}/>
-                        <p style={{color: 'red'}}>{cstError.value}</p>
-                      </FormGroup>
-                    </Col>
-                    <Col md={2}>
-                      <Row>
-                        <Spinner color="info" hidden={!progressbar}/>
-                        <Button className={"btn-fill mt-4 ml-2"} color="info" type="button" onClick={onSubmit}>
-                          Search
-                        </Button>
-                      </Row>
+                    <Col md={4}>
+                      <Button className="btn-fill" color="info" type="submit" disabled={progressbar}>
+                        {progressbar ? <Spinner size="sm" /> : "Search Members"}
+                      </Button>
                     </Col>
                   </Row>
                 </Form>
@@ -174,7 +155,7 @@ const SearchMembers = () => {
               <CardHeader>
                 <CardTitle tag="h4">Simple Table</CardTitle>
               </CardHeader>
-              <CardBody style={{height: window.innerHeight - 300}}>
+              <CardBody style={{ height: window.innerHeight - 300 }}>
                 <AgGridReact
                   rowData={rowData}
                   columnDefs={colDefs}

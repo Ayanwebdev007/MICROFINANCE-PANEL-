@@ -1,17 +1,16 @@
-const { getFirestore} = require('firebase-admin/firestore');
+const { getFirestore } = require('firebase-admin/firestore');
 const db = getFirestore();
-const createDateArray = require("../../../functions/createDateArray");
+const transactionService = require('../../../services/transactionService');
 
-module.exports = app=> {
-    app.post('/api/reports/loan/loan-cp-ewi-report', async function (req, res){
+module.exports = app => {
+    app.post('/api/reports/loan/loan-cp-ewi-report', async function (req, res) {
         const token = req.user;
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
-        
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
+
         try {
             const bankId = req.body.bankId || token.bankId;
             const fromDate = req.body.fromDate;
             const toDate = req.body.toDate;
-            const dateArray = createDateArray(fromDate, toDate);
             const agentTransactions = [];
             let transObj = {};
             // Sum Variables
@@ -19,54 +18,54 @@ module.exports = app=> {
             let totalCredit = 0;
             let totalPrinciple = 0;
             let totalInterest = 0;
-            
-            for (const selectedDate of dateArray) {
-                let getTrans;
-                if (req.body.agent === 'all'){
-                    getTrans = await db.collection(bankId).doc('transaction').collection(selectedDate).where('glCode', '==', '23105').get();
-                }else {
-                    getTrans = await db.collection(bankId).doc('transaction').collection(selectedDate).where('glCode', '==', '23105').where('referrer', '==', req.body.agent).get();
+
+            const transactions = await transactionService.getTransactionsByRange(bankId, fromDate, toDate);
+
+            transactions.forEach(function (data) {
+                if (data.glCode !== '23105') return;
+                if (req.body.agent !== 'all' && data.referrer !== req.body.agent) return;
+
+                const referrer = data.referrer;
+                if (!referrer) return;
+
+                if (!transObj[referrer]) {
+                    transObj[referrer] = {
+                        agent: referrer,
+                        debit: 0,
+                        credit: 0,
+                        principle: 0,
+                        interest: 0,
+                    };
                 }
-                
-                getTrans.forEach(function (querySnapshot){
-                    const existingTrans = transObj[querySnapshot.data().referrer]
-                    if (querySnapshot.data().type === 'credit'){
-                        transObj = {
-                            ...transObj,
-                            [querySnapshot.data().referrer]: {
-                                agent: querySnapshot.data().referrer,
-                                debit: existingTrans ? existingTrans.debit : 0,
-                                credit: existingTrans ? existingTrans.credit + parseFloat(querySnapshot.data().principle) + parseFloat(querySnapshot.data().interest) : parseFloat(querySnapshot.data().principle) + parseFloat(querySnapshot.data().interest),
-                                principle: existingTrans ? existingTrans.principle + parseFloat(querySnapshot.data().principle) : parseFloat(querySnapshot.data().principle),
-                                interest: existingTrans ? existingTrans.interest + parseFloat(querySnapshot.data().interest) : parseFloat(querySnapshot.data().interest),
-                            },
-                        };
-                        totalCredit += parseFloat(querySnapshot.data().principle) + parseFloat(querySnapshot.data().interest);
-                        totalPrinciple += parseFloat(querySnapshot.data().principle);
-                        totalInterest += parseFloat(querySnapshot.data().interest);
-                    }else if (querySnapshot.data().type === 'debit'){
-                        transObj = {
-                            ...transObj,
-                            [querySnapshot.data().referrer]: {
-                                agent: querySnapshot.data().referrer,
-                                debit: existingTrans ? existingTrans.debit + parseFloat(querySnapshot.data().amount) : parseFloat(querySnapshot.data().amount),
-                                credit: existingTrans ? existingTrans.credit : 0,
-                                principle: existingTrans ? existingTrans.principle : 0,
-                                interest: existingTrans ? existingTrans.interest : 0,
-                            },
-                        };
-                        totalDebit += parseFloat(querySnapshot.data().amount);
-                    }
-                });
-            }
-            
+
+                const existingTrans = transObj[referrer];
+                const amount = parseFloat(data.amount) || 0;
+                const principle = parseFloat(data.principle) || 0;
+                const interest = parseFloat(data.interest) || 0;
+
+                if (data.type === 'credit') {
+                    existingTrans.credit += principle + interest;
+                    existingTrans.principle += principle;
+                    existingTrans.interest += interest;
+
+                    totalCredit += principle + interest;
+                    totalPrinciple += principle;
+                    totalInterest += interest;
+                } else if (data.type === 'debit') {
+                    existingTrans.debit += amount;
+                    totalDebit += amount;
+                }
+            });
+
             for (const trans of Object.values(transObj)) {
                 const cifInfo = await db.collection(bankId).doc('kyc').collection('advisor-kyc').doc(trans.agent).get();
-                agentTransactions.push({
-                    ...trans,
-                    name: cifInfo.data().name,
-                    membershipNumber: cifInfo.id,
-                });
+                if (cifInfo.exists) {
+                    agentTransactions.push({
+                        ...trans,
+                        name: cifInfo.data().name,
+                        membershipNumber: cifInfo.id,
+                    });
+                }
             }
             res.send({
                 success: 'successfully fetched EWI transactions',
@@ -78,8 +77,8 @@ module.exports = app=> {
             });
         } catch (error) {
             console.log(error);
-            res.send({error: "Failed to fetch loan-cp-ewi report. try again..."})
-            
+            res.send({ error: "Failed to fetch loan-cp-ewi report. try again..." })
+
         }
     });
 }

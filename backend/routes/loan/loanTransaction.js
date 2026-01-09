@@ -1,25 +1,20 @@
 const { getFirestore } = require('firebase-admin/firestore');
 const db = getFirestore();
+const loanService = require('../../services/loanService');
+const { generateTransactionId } = require('../../utils/transactionUtils');
 
 module.exports = app => {
     app.post('/api/loan/loan-repayment-transaction', async function (req, res) {
         const token = req.user;
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
         const systemDate = new Date().toISOString().slice(0, 10);
 
         try {
             await db.runTransaction(async (t) => {
                 let transactionId;
-                let glCode = '23315';
-                let glHead = 'SHORT TERM PERSONAL LOAN - CURRENT';
-                let interestGLCode = '52315';
-                let interestGLHead = 'INTEREST ON SHORT TERM PERSONAL LOAN-CURRENT';
 
-                if (req.body.accountType === 'group-loan') {
-                    glCode = '23105';
-                    glHead = 'SHORT TERM GROUP LOAN - CURRENT';
-                    interestGLCode = '52105';
-                    interestGLHead = 'INTEREST ON SHORT TERM GROUP LOAN-CURRENT';
-                }
+                const { glCode, glHead, interestGLCode, interestGLHead } = loanService.getLoanGlConfig(req.body.accountType);
+
                 const piRef = db.collection(token.bankId).doc('admin').collection('transIterator').doc(systemDate);
                 const piInfo = await t.get(piRef);
                 if (piInfo.exists) {
@@ -35,7 +30,6 @@ module.exports = app => {
                     ...req.body,
                     accountType: req.body.accountType,
                     name: req.body.name,
-                    // amount: parseFloat(req.body.emiAmount) * parseFloat(req.body.emiCollection),
                     amount: req.body.totalAmount,
                     accountNumber: req.body.account,
                     createdBy: token.email,
@@ -85,22 +79,14 @@ module.exports = app => {
         try {
             await db.runTransaction(async (t) => {
                 let date = req.body.transDate || new Date().toISOString().slice(0, 10);
-                let glCode = '23105';
-                let glHead = 'SHORT TERM GROUP LOAN - CURRENT';
-                let interestGlCode = '52105';
-                let interestGlHead = 'INTEREST ON SHORT TERM GROUP LOAN-CURRENT';
 
-                if (req.body.accountType === 'loan') {
-                    glCode = '23315';
-                    glHead = 'SHORT TERM PERSONAL LOAN - CURRENT';
-                    interestGlCode = '52315';
-                    interestGlHead = 'INTEREST ON SHORT TERM PERSONAL LOAN-CURRENT';
-                }
+                const { glCode, glHead, interestGLCode, interestGLHead } = loanService.getLoanGlConfig(req.body.accountType);
+
                 const iteratorRef = db.collection(token.bankId).doc('admin').collection('transIterator').doc(date);
                 const iteratorInfo = await t.get(iteratorRef);
 
                 if (iteratorInfo.exists) {
-                    transactionNumber = iteratorInfo.data().value + 1;
+                    transactionNumber = parseInt(iteratorInfo.data().value) + 1;
                 } else {
                     transactionNumber = generateTransactionId() + 1;
                 }
@@ -111,15 +97,14 @@ module.exports = app => {
                     ...req.body,
                     glCode,
                     glHead,
-                    interestGlCode,
-                    interestGlHead,
+                    interestGlCode: interestGLCode,
+                    interestGlHead: interestGLHead,
                     author: token.email,
                     createdAt: new Date().toISOString(),
                 };
                 t.set(piRef, paymentInstruction);
                 res.send({
                     success: `Successfully create Payment Instruction. Please authorize transaction ${transactionNumber}`,
-                    // denomination: updatedMyDenomination,
                 });
             });
         } catch (e) {
@@ -127,15 +112,4 @@ module.exports = app => {
             res.send({ error: 'there is something wrong. Try again...' });
         }
     });
-}
-
-const generateTransactionId = () => {
-    let now = new Date();
-    let month = (now.getMonth() + 1);
-    let day = now.getDate();
-    if (month < 10)
-        month = "0" + month;
-    if (day < 10)
-        day = "0" + day;
-    return parseInt(now.getFullYear().toString() + month.toString() + day.toString() + '000');
-}
+};

@@ -26,7 +26,7 @@ import {
   Col,
 } from "reactstrap";
 import { AgGridReact } from 'ag-grid-react';
-import {LinearProgress} from "@mui/material";
+import { LinearProgress } from "@mui/material";
 
 // core components
 import axios from "axios";
@@ -43,74 +43,130 @@ const ViewAdvisor = () => {
     timestamp: new Date().getTime(),
   });
   const [rowData, setRowData] = React.useState([]);
-  const [fetched, setFetched] = React.useState(false);
+  const [lastVisible, setLastVisible] = React.useState(null);
+  const [hasMore, setHasMore] = React.useState(true);
+  const [searchText, setSearchText] = React.useState("");
+
   const [colDefs, setColDefs] = React.useState([
-    {field: "id", headerName: "ADVISOR ID"},
-    {field: "name", headerName: "NAME"},
-    {field: "guardian", headerName: "FATHER/MOTHER/SPOUSE"},
-    {field: "date", headerName: "JOINING DATE"},
-    {field: "address", headerName: "ADDRESS"},
-    {field: "phone", headerName: "PHONE NUMBER"},
+    { field: "id", headerName: "ADVISOR ID", width: 120 },
+    { field: "name", headerName: "NAME", minWidth: 200 },
+    { field: "guardian", headerName: "FATHER/MOTHER/SPOUSE", minWidth: 200 },
+    { field: "date", headerName: "JOINING DATE", width: 150 },
+    { field: "address", headerName: "ADDRESS", minWidth: 250 },
+    { field: "phone", headerName: "PHONE NUMBER", width: 150 },
   ]);
   const defaultColDef = {
     flex: 1,
     filter: true,
-    floatingFilter: true
+    floatingFilter: true,
+    resizable: true,
+    sortable: true
   }
-  React.useEffect(() => {
-    setProgressbar(true);
-    if (!fetched) {
-      setFetched(true);
-      axios.get('/api/advisor/get-advisor-list')
-        .then(res => {
-          if (res.data.success) {
-            setRowData(res.data.advisorList);
-          }else {
-            setAlert({
-              color: 'warning',
-              message: res.data.warning,
-              autoDismiss: 7,
-              place: 'tc',
-              display: true,
-              timestamp: new Date().getTime(),
-            });
-          }
-          setProgressbar(false);
-        })
-        .catch(err => {
-          setAlert({
-            color: 'danger',
-            message: err.message,
-            autoDismiss: 7,
-            place: 'tc',
-            display: true,
-            timestamp: new Date().getTime(),
-          });
-          setProgressbar(false);
+
+  const fetchAdvisors = async (reset = false) => {
+    try {
+      setProgressbar(true);
+      const currentLastVisible = reset ? null : lastVisible;
+      const response = await axios.get('/api/advisor/get-advisor-list', {
+        params: {
+          limit: 50,
+          lastVisible: currentLastVisible,
+          search: searchText
+        }
+      });
+
+      if (response.data.success) {
+        const newList = response.data.advisorList;
+        if (reset) {
+          setRowData(newList);
+        } else {
+          setRowData(prev => [...prev, ...newList]);
+        }
+        setLastVisible(response.data.lastVisible);
+        setHasMore(newList.length === 50);
+      } else {
+        if (reset) setRowData([]);
+        setHasMore(false);
+        setAlert({
+          color: 'warning',
+          message: response.data.error || 'No advisors found',
+          autoDismiss: 7,
+          place: 'tc',
+          display: true,
+          timestamp: new Date().getTime(),
         });
+      }
+      setProgressbar(false);
+    } catch (err) {
+      setProgressbar(false);
+      setAlert({
+        color: 'danger',
+        message: err.message,
+        autoDismiss: 7,
+        place: 'tc',
+        display: true,
+        timestamp: new Date().getTime(),
+      });
     }
-  }, [fetched]);
+  };
+
+  React.useEffect(() => {
+    fetchAdvisors(true);
+  }, []);
+
+  const handleSearch = (e) => {
+    if (e) e.preventDefault();
+    fetchAdvisors(true);
+  };
 
   return (
     <>
       <div className="rna-container">
         {progressbar && <LinearProgress />}
-        {alert.display && <CstNotification color={alert.color} message={alert.message} autoDismiss={alert.autoDismiss} place={alert.place} timestamp={alert.timestamp}/>}
+        {alert.display && <CstNotification color={alert.color} message={alert.message} autoDismiss={alert.autoDismiss} place={alert.place} timestamp={alert.timestamp} />}
       </div>
       <div className="content">
         <Row>
-          <Col className="mb-5" md="12">
+          <Col md="12" className="mb-5">
             <Card>
               <CardHeader>
-                <CardTitle tag="h4">Simple Table</CardTitle>
+                <Row className="align-items-center">
+                  <Col md="4">
+                    <CardTitle tag="h4">Advisor List</CardTitle>
+                  </Col>
+                  <Col md="8">
+                    <form onSubmit={handleSearch}>
+                      <Row className="align-items-center">
+                        <Col md="8">
+                          <Input
+                            placeholder="Search Name/ID/Phone..."
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                          />
+                        </Col>
+                        <Col md="4">
+                          <Button color="info" size="sm" type="submit">Search</Button>
+                        </Col>
+                      </Row>
+                    </form>
+                  </Col>
+                </Row>
               </CardHeader>
-              <CardBody style={{height: window.innerHeight - 300}}>
+              <CardBody style={{ height: window.innerHeight - 350 }}>
                 <AgGridReact
                   rowData={rowData}
                   columnDefs={colDefs}
                   defaultColDef={defaultColDef}
                   enableCellTextSelection={true}
+                  overlayNoRowsTemplate={'<span>No advisors found</span>'}
                 />
+                {hasMore && (
+                  <div className="text-center mt-3">
+                    <Button color="info" outline size="sm" onClick={() => fetchAdvisors(false)} disabled={progressbar}>
+                      {progressbar ? "Loading..." : "Load More"}
+                    </Button>
+                  </div>
+                )}
               </CardBody>
             </Card>
           </Col>

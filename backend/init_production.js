@@ -128,15 +128,17 @@ async function initializeProduction() {
             twoFAEnabled: false
         });
 
-        // Master Data (Required for bank operations)
-        const masterGlRef = db.collection('admin').doc('master-data').collection('gl_code').doc('value');
-        batch.set(masterGlRef, {
-            assets: {},
-            liabilities: {},
-            income: {},
-            expenses: {},
-            initialized: true
-        });
+        // Master Data (Required for bank operations) - SHARDED COLLECTION
+        const masterGlCodes = [
+            { code: '14301', head: 'SAVINGS DEPOSIT(NON MEMBERS)', category: 'liability' },
+            { code: '23315', head: 'SHORT TERM PERSONAL LOAN - CURRENT', category: 'asset' },
+            // ... other codes can be added via UI or sync
+        ];
+
+        for (const gl of masterGlCodes) {
+            const glRef = db.collection('admin').doc('master-data').collection('gl_codes').doc(gl.code);
+            batch.set(glRef, { ...gl, initialized: true });
+        }
 
         await batch.commit();
         console.log('Firestore data seeded successfully.');

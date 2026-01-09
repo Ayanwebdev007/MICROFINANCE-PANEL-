@@ -5,6 +5,7 @@ const db = getFirestore();
 const fs = require('fs/promises');
 const { chromium } = require('playwright');
 const numberToWords = require('number-to-words');
+const loanService = require('../../services/loanService');
 
 
 // 🔒 Reuse browser (VERY IMPORTANT)
@@ -101,6 +102,20 @@ module.exports = app => {
     });
 
 
+    app.post('/api/loan/calculate-loan-terms', async function (req, res) {
+        const token = req.user;
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
+
+        const { amount, planDetails } = req.body;
+        const result = loanService.calculateLoanTerms(amount, planDetails);
+
+        if (result) {
+            res.send({ success: true, ...result });
+        } else {
+            res.send({ error: 'Invalid input for calculation' });
+        }
+    });
+
     app.get('/api/get-loan-account/:type/:account/:date', async function (req, res) {
         const accountType = req.params.type;
         const account = req.params.account;
@@ -124,13 +139,24 @@ module.exports = app => {
                 }
             }
 
+            const data = accountDetails.data();
+            const dueInfo = loanService.calculateInstallmentDue(
+                data.disbursementDate,
+                data.totalEMI,
+                data.paidEMI,
+                data.emiMode || data.planDetails?.emiMode || 'weekly',
+                data.emiAmount,
+                data.partialEmiDueAmount || 0,
+                req.params.date
+            );
+
             const accountObj = {
                 account: accountDetails.id,
-                ...accountDetails.data(),
+                ...data,
                 applicants: applicants,
                 uuid: applicants[0].uuid,
+                dueInfo: dueInfo
             };
-            // console.log(accountObj);
             res.send({ success: accountObj });
         } else {
             res.send({ error: 'You have entered incorrect Account Number' });
@@ -187,8 +213,12 @@ module.exports = app => {
         })
 
         console.log(totalEmiPaidAmount)
-        const installmentDue = Math.round((new Date() - new Date(getAccount.data().disbursementDate)) / (3600 * 24 * 1000 * 7)) + 1 - parseInt(getAccount.data().paidEMI);
-        const installmentActualDue = installmentDue > (parseInt(getAccount.data().totalEMI) - parseInt(getAccount.data().paidEMI)) ? (parseInt(getAccount.data().totalEMI) - parseInt(getAccount.data().paidEMI)) : installmentDue;
+        const installmentActualDue = loanService.getInstallmentDue(
+            getAccount.data().disbursementDate,
+            getAccount.data().totalEMI,
+            getAccount.data().paidEMI,
+            7 // Assuming weekly for this specific logic, though it should ideally be dynamic
+        );
 
         res.send({
             success: {
@@ -652,49 +682,26 @@ module.exports = app => {
             });
 
             const startDate = new Date(disbursementDate);
-            const schedule = [];
-            let balance = loanAmount;
+            const detailedSchedule = loanService.calculateDetailedSchedule(
+                loanAmount,
+                totalEMI,
+                emiAmount,
+                disbursementDate,
+                emiMode
+            );
 
-            for (let i = 1; i <= totalEMI; i++) {
-                const emiDate = new Date(startDate);
-                switch (emiMode) {
-                    case 'daily':
-                        emiDate.setDate(startDate.getDate() + i - 1);
-                        break;
-                    case 'weekly':
-                        emiDate.setDate(startDate.getDate() + (i - 1) * 7);
-                        break;
-                    case 'fortnightly':
-                        emiDate.setDate(startDate.getDate() + (i - 1) * 14);
-                        break;
-                    case 'monthly':
-                        emiDate.setMonth(startDate.getMonth() + i - 1);
-                        break;
-                    case 'quarterly':
-                        emiDate.setMonth(startDate.getMonth() + (i - 1) * 3);
-                        break;
-                    default:
-                        emiDate.setDate(startDate.getDate() + i - 1);
-                }
-
-                const principal = principleEMI;
-                const interest = interestEMI;
-                const emi = principal + interest;
-                balance -= principal;
-
-                schedule.push({
-                    emiNo: i,
-                    date: new Intl.DateTimeFormat('en-IN', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: '2-digit',
-                    }).format(emiDate),
-                    principal: principal.toFixed(2),
-                    interest: interest.toFixed(2),
-                    emi: emi.toFixed(2),
-                    balance: Math.max(balance, 0).toFixed(2),
-                });
-            }
+            const schedule = detailedSchedule.map(item => ({
+                ...item,
+                date: new Intl.DateTimeFormat('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: '2-digit',
+                }).format(item.date),
+                principal: item.principal.toFixed(2),
+                interest: item.interest.toFixed(2),
+                emi: item.emi.toFixed(2),
+                balance: item.balance.toFixed(2),
+            }));
 
 
             const bankInfoDoc = await db

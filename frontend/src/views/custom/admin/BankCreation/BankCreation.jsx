@@ -36,7 +36,7 @@ import CstNotification from "../../components/CstNotification";
 import ReactBSAlert from "react-bootstrap-sweetalert";
 import BankLogoUpload from "../../components/BankLogoUpload";
 
-const AddMember = () => {
+const BankCreation = () => {
     const currentDate = new Date().toISOString().split('T')[0];
     const initInput = {
         bankName: '',
@@ -95,9 +95,9 @@ const AddMember = () => {
         if (inputValid) {
             try {
                 setProgressbar(true);
-                const submitData = await axios.post('/api/admin/create-new-bank', {...userInput, module: module});
+                const submitData = await axios.post('/api/admin/create-new-bank', { ...userInput, module: module });
                 if (submitData.data.success) {
-                    setUserInput({...initInput, uuid: crypto.randomUUID(),});
+                    setUserInput({ ...initInput, uuid: crypto.randomUUID(), });
                     setAlert({
                         color: 'success',
                         message: submitData.data.success,
@@ -144,23 +144,23 @@ const AddMember = () => {
         };
         let isValid = true;
         if (!inputValue.bankName) {
-            temp = {...temp, bankName: 'this is required'};
+            temp = { ...temp, bankName: 'this is required' };
             isValid = false;
         }
         if (!inputValue.displayName) {
-            temp = {...temp, displayName: 'this is required'};
+            temp = { ...temp, displayName: 'this is required' };
             isValid = false;
         }
         if (!inputValue.startDate) {
-            temp = {...temp, startDate: 'this is required'};
+            temp = { ...temp, startDate: 'this is required' };
             isValid = false;
         }
         if (!inputValue.renewDate) {
-            temp = {...temp, renewDate: 'this is required'};
+            temp = { ...temp, renewDate: 'this is required' };
             isValid = false;
         }
         if (!inputValue.registrationCode) {
-            temp = {...temp, registrationCode: 'this is required'};
+            temp = { ...temp, registrationCode: 'this is required' };
             isValid = false;
         }
         // if (!inputValue.domainName) {
@@ -184,7 +184,7 @@ const AddMember = () => {
     }
 
     function getImageUrl(imageUrl) {
-        setUserInput({...userInput, logo: imageUrl});
+        setUserInput({ ...userInput, logo: imageUrl });
     }
 
     return (
@@ -192,13 +192,13 @@ const AddMember = () => {
             <div className="rna-container">
                 {alert.display &&
                     <CstNotification color={alert.color} message={alert.message} autoDismiss={alert.autoDismiss}
-                                     place={alert.place} timestamp={alert.timestamp}/>}
+                        place={alert.place} timestamp={alert.timestamp} />}
                 {alert.sweetAlert && <ReactBSAlert
                     success
-                    style={{display: "block", marginTop: "-100px"}}
+                    style={{ display: "block", marginTop: "-100px" }}
                     title="Success!"
-                    onConfirm={() => setAlert({...alert, sweetAlert: false})}
-                    onCancel={() => setAlert({...alert, sweetAlert: false})}
+                    onConfirm={() => setAlert({ ...alert, sweetAlert: false })}
+                    onCancel={() => setAlert({ ...alert, sweetAlert: false })}
                     confirmBtnBsStyle="success"
                     btnSize=""
                 >
@@ -221,73 +221,73 @@ const AddMember = () => {
                                                     <Label>Bank/Microfinance Name</Label>
                                                     <FormGroup>
                                                         <Input type={'text'} value={userInput.bankName}
-                                                               onChange={(event) => setUserInput({
-                                                                   ...userInput,
-                                                                   bankName: event.target.value.toUpperCase()
-                                                               })}/>
-                                                        <p style={{color: 'red'}}>{cstError.bankName}</p>
+                                                            onChange={(event) => setUserInput({
+                                                                ...userInput,
+                                                                bankName: event.target.value.toUpperCase()
+                                                            })} />
+                                                        <p style={{ color: 'red' }}>{cstError.bankName}</p>
                                                     </FormGroup>
                                                 </Col>
                                                 <Col className="pr-1" md="6">
                                                     <Label>Brand Name (Short)</Label>
                                                     <FormGroup>
                                                         <Input type={'text'} value={userInput.displayName}
-                                                               onChange={(event) => setUserInput({
-                                                                   ...userInput,
-                                                                   displayName: event.target.value
-                                                               })}/>
-                                                        <p style={{color: 'red'}}>{cstError.displayName}</p>
+                                                            onChange={(event) => setUserInput({
+                                                                ...userInput,
+                                                                displayName: event.target.value
+                                                            })} />
+                                                        <p style={{ color: 'red' }}>{cstError.displayName}</p>
                                                     </FormGroup>
                                                 </Col>
                                                 <Col className="pr-1" md="6">
                                                     <Label>Registration Number</Label>
                                                     <FormGroup>
                                                         <Input type={'text'} value={userInput.registrationCode}
-                                                               onChange={(event) => setUserInput({
-                                                                   ...userInput,
-                                                                   registrationCode: event.target.value
-                                                               })}/>
-                                                        <p style={{color: 'red'}}>{cstError.registrationCode}</p>
+                                                            onChange={(event) => setUserInput({
+                                                                ...userInput,
+                                                                registrationCode: event.target.value
+                                                            })} />
+                                                        <p style={{ color: 'red' }}>{cstError.registrationCode}</p>
                                                     </FormGroup>
                                                 </Col>
                                                 <Col className="pr-1" md="6">
                                                     <Label>Email Id</Label>
                                                     <FormGroup>
                                                         <Input type={'text'} value={userInput.email}
-                                                               onChange={(event) => setUserInput({
-                                                                   ...userInput,
-                                                                   email: event.target.value
-                                                               })}/>
+                                                            onChange={(event) => setUserInput({
+                                                                ...userInput,
+                                                                email: event.target.value
+                                                            })} />
                                                     </FormGroup>
                                                 </Col>
                                                 <Col className="pr-1" md="4">
                                                     <Label>PAN Id</Label>
                                                     <FormGroup>
                                                         <Input type={'text'} value={userInput.pan}
-                                                               onChange={(event) => setUserInput({
-                                                                   ...userInput,
-                                                                   pan: event.target.value
-                                                               })}/>
+                                                            onChange={(event) => setUserInput({
+                                                                ...userInput,
+                                                                pan: event.target.value
+                                                            })} />
                                                     </FormGroup>
                                                 </Col>
                                                 <Col className="pr-1" md="4">
                                                     <Label>TAN Id</Label>
                                                     <FormGroup>
                                                         <Input type={'text'} value={userInput.tan}
-                                                               onChange={(event) => setUserInput({
-                                                                   ...userInput,
-                                                                   tan: event.target.value
-                                                               })}/>
+                                                            onChange={(event) => setUserInput({
+                                                                ...userInput,
+                                                                tan: event.target.value
+                                                            })} />
                                                     </FormGroup>
                                                 </Col>
                                                 <Col className="pr-1" md="4">
                                                     <Label>GST Id</Label>
                                                     <FormGroup>
                                                         <Input type={'text'} value={userInput.gst}
-                                                               onChange={(event) => setUserInput({
-                                                                   ...userInput,
-                                                                   gst: event.target.value
-                                                               })}/>
+                                                            onChange={(event) => setUserInput({
+                                                                ...userInput,
+                                                                gst: event.target.value
+                                                            })} />
                                                     </FormGroup>
                                                 </Col>
                                                 {/* create three fields */}
@@ -295,44 +295,44 @@ const AddMember = () => {
                                                     <Label>Domain name(Optional)</Label>
                                                     <FormGroup>
                                                         <Input type={'text'} value={userInput.domainName}
-                                                               onChange={(event) => setUserInput({
-                                                                   ...userInput,
-                                                                   domainName: event.target.value
-                                                               })}/>
-                                                        <p style={{color: 'red'}}>{cstError.domainName}</p>
+                                                            onChange={(event) => setUserInput({
+                                                                ...userInput,
+                                                                domainName: event.target.value
+                                                            })} />
+                                                        <p style={{ color: 'red' }}>{cstError.domainName}</p>
                                                     </FormGroup>
                                                 </Col>
                                                 <Col className="pr-1" md="4">
                                                     <Label>Start date *</Label>
                                                     <FormGroup>
                                                         <Input type={'date'} value={userInput.startDate}
-                                                               onChange={(event) => setUserInput({
-                                                                   ...userInput,
-                                                                   startDate: event.target.value
-                                                               })}/>
-                                                        <p style={{color: 'red'}}>{cstError.startDate}</p>
+                                                            onChange={(event) => setUserInput({
+                                                                ...userInput,
+                                                                startDate: event.target.value
+                                                            })} />
+                                                        <p style={{ color: 'red' }}>{cstError.startDate}</p>
                                                     </FormGroup>
                                                 </Col>
                                                 <Col className="pr-1" md="4">
                                                     <Label>Renew date *</Label>
                                                     <FormGroup>
                                                         <Input type={'date'} value={userInput.renewDate}
-                                                               onChange={(event) => setUserInput({
-                                                                   ...userInput,
-                                                                   renewDate: event.target.value
-                                                               })}/>
-                                                        <p style={{color: 'red'}}>{cstError.renewDate}</p>
+                                                            onChange={(event) => setUserInput({
+                                                                ...userInput,
+                                                                renewDate: event.target.value
+                                                            })} />
+                                                        <p style={{ color: 'red' }}>{cstError.renewDate}</p>
                                                     </FormGroup>
                                                 </Col>
                                                 <Col className="pr-1" md={'12'}>
                                                     <Label>Full Address with Pin Code</Label>
                                                     <FormGroup>
                                                         <Input type={'textarea'} value={userInput.address}
-                                                               aria-colspan={3}
-                                                               onChange={(event) => setUserInput({
-                                                                   ...userInput,
-                                                                   address: event.target.value
-                                                               })}/>
+                                                            aria-colspan={3}
+                                                            onChange={(event) => setUserInput({
+                                                                ...userInput,
+                                                                address: event.target.value
+                                                            })} />
                                                     </FormGroup>
                                                 </Col>
                                             </Row>
@@ -367,7 +367,7 @@ const AddMember = () => {
                                             id="switch-tools"
                                             className="mt-n4"
                                             checked={module.tools}
-                                            onChange={() => setModule({...module, tools: !module.tools})}
+                                            onChange={() => setModule({ ...module, tools: !module.tools })}
                                         />
                                         <span className="ml-n2">(True) : Tools Module</span>
                                     </Col>
@@ -392,7 +392,7 @@ const AddMember = () => {
                                             id="switch-member"
                                             className="mt-n4"
                                             checked={module.member}
-                                            onChange={() => setModule({...module, member: !module.member})}
+                                            onChange={() => setModule({ ...module, member: !module.member })}
                                         />
                                         <span className="ml-n2">(True) : Member Module</span>
                                     </Col>
@@ -403,7 +403,7 @@ const AddMember = () => {
                                             id="switch-advisor"
                                             className="mt-n4"
                                             checked={module.advisor}
-                                            onChange={() => setModule({...module, advisor: !module.advisor})}
+                                            onChange={() => setModule({ ...module, advisor: !module.advisor })}
                                         />
                                         <span className="ml-n2">(True) : Advisor Module</span>
                                     </Col>
@@ -414,7 +414,7 @@ const AddMember = () => {
                                             id="switch-employee"
                                             className="mt-n4"
                                             checked={module.employee}
-                                            onChange={() => setModule({...module, employee: !module.employee})}
+                                            onChange={() => setModule({ ...module, employee: !module.employee })}
                                         />
                                         <span className="ml-n2">(True) : Employee Module</span>
                                     </Col>
@@ -425,7 +425,7 @@ const AddMember = () => {
                                             id="switch-savings"
                                             className="mt-n4"
                                             checked={module.savings}
-                                            onChange={() => setModule({...module, savings: !module.savings})}
+                                            onChange={() => setModule({ ...module, savings: !module.savings })}
                                         />
                                         <span className="ml-n2">(True) : Savings Module</span>
                                     </Col>
@@ -436,7 +436,7 @@ const AddMember = () => {
                                             id="switch-deposit"
                                             className="mt-n4"
                                             checked={module.deposit}
-                                            onChange={() => setModule({...module, deposit: !module.deposit})}
+                                            onChange={() => setModule({ ...module, deposit: !module.deposit })}
                                         />
                                         <span className="ml-n2">(True) : Deposit Module</span>
                                     </Col>
@@ -447,7 +447,7 @@ const AddMember = () => {
                                             id="switch-loan"
                                             className="mt-n4"
                                             checked={module.loan}
-                                            onChange={() => setModule({...module, loan: !module.loan})}
+                                            onChange={() => setModule({ ...module, loan: !module.loan })}
                                         />
                                         <span className="ml-n2">(True) : Loan Module</span>
                                     </Col>
@@ -458,7 +458,7 @@ const AddMember = () => {
                                             id="switch-groupLoan"
                                             className="mt-n4"
                                             checked={module.groupLoan}
-                                            onChange={() => setModule({...module, groupLoan: !module.groupLoan})}
+                                            onChange={() => setModule({ ...module, groupLoan: !module.groupLoan })}
                                         />
                                         <span className="ml-n2">(True) : Group Loan Module</span>
                                     </Col>
@@ -469,7 +469,7 @@ const AddMember = () => {
                                             id="switch-journal"
                                             className="mt-n4"
                                             checked={module.journal}
-                                            onChange={() => setModule({...module, journal: !module.journal})}
+                                            onChange={() => setModule({ ...module, journal: !module.journal })}
                                         />
                                         <span className="ml-n2">(True) : Journal Module</span>
                                     </Col>
@@ -480,7 +480,7 @@ const AddMember = () => {
                                             id="switch-authorize"
                                             className="mt-n4"
                                             checked={module.authorize}
-                                            onChange={() => setModule({...module, authorize: !module.authorize})}
+                                            onChange={() => setModule({ ...module, authorize: !module.authorize })}
                                         />
                                         <span className="ml-n2">(True) : Authorization Module</span>
                                     </Col>
@@ -491,7 +491,7 @@ const AddMember = () => {
                                             id="switch-report"
                                             className="mt-n4"
                                             checked={module.report}
-                                            onChange={() => setModule({...module, report: !module.report})}
+                                            onChange={() => setModule({ ...module, report: !module.report })}
                                         />
                                         <span className="ml-n2">(True) : Report Module</span>
                                     </Col>
@@ -502,7 +502,7 @@ const AddMember = () => {
                                             id="switch-mobile"
                                             className="mt-n4"
                                             checked={module.mobile}
-                                            onChange={() => setModule({...module, mobile: !module.mobile})}
+                                            onChange={() => setModule({ ...module, mobile: !module.mobile })}
                                         />
                                         <span className="ml-n2">(True) : Mobile APP Module</span>
                                     </Col>
@@ -515,7 +515,7 @@ const AddMember = () => {
                     <Col md="12" className={'text-center'}>
                         <CardFooter>
                             <center>
-                                <Spinner color="info" hidden={!progressbar}/>
+                                <Spinner color="info" hidden={!progressbar} />
                             </center>
                             <Button className="btn-fill" color="info" type="button" onClick={onSubmit}>
                                 Submit

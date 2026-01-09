@@ -1,10 +1,11 @@
-const {getFirestore} = require('firebase-admin/firestore');
+const { getFirestore } = require('firebase-admin/firestore');
 const db = getFirestore();
+const { generateKeywords } = require('../../utils/searchUtils');
 
 module.exports = app => {
     app.post('/api/member/add-new-member', async function (req, res) {
         const token = req.user; // Get user from the middleware
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
         let errorSent = false;
 
         const bankId = req.body.bankId || token.bankId;
@@ -14,14 +15,14 @@ module.exports = app => {
             const aadharRef = db.collection(bankId).doc('kyc').collection('member-kyc').where('aadhar', '==', req.body.aadhar);
             const getAadharMatchingMembers = await aadharRef.get();
             if (getAadharMatchingMembers.size > 0) {
-                return res.send({error: 'Aadhar Card already exists for another Member. Please use another Aadhar Card'});
+                return res.send({ error: 'Aadhar Card already exists for another Member. Please use another Aadhar Card' });
             }
         }
         if (req.body.pan) {
             const panRef = db.collection(bankId).doc('kyc').collection('member-kyc').where('pan', '==', req.body.pan);
             const getPanMatchingMembers = await panRef.get();
             if (getPanMatchingMembers.size > 0) {
-                return res.send({error: 'PAN Card already exists for another Member. Please use another PAN Card'});
+                return res.send({ error: 'PAN Card already exists for another Member. Please use another PAN Card' });
             }
         }
 
@@ -29,7 +30,7 @@ module.exports = app => {
             const panRef = db.collection(bankId).doc('kyc').collection('member-kyc').where('phone', '==', req.body.phone);
             const getPanMatchingMembers = await panRef.get();
             if (getPanMatchingMembers.size > 0) {
-                return res.send({error: 'Phone Number already exists for another Member. Please use another Phone Number'});
+                return res.send({ error: 'Phone Number already exists for another Member. Please use another Phone Number' });
             }
         }
 
@@ -40,7 +41,7 @@ module.exports = app => {
                 const iterator = await t.get(iteratorRef);
 
                 if (isNaN(parseInt(iterator.data().value))) {
-                    return res.send({error: 'Invalid iterator value. Please contact support.'});
+                    return res.send({ error: 'Invalid iterator value. Please contact support.' });
                 }
 
                 const kycId = `${iterator.data().prefix || ''}${iterator.data().value}`;
@@ -51,6 +52,8 @@ module.exports = app => {
                 });
 
                 const kycRef = db.collection(bankId).doc('kyc').collection('member-kyc').doc(kycId);
+                const searchKeywords = generateKeywords(`${kycId} ${req.body.name} ${req.body.phone} ${req.body.aadhar} ${req.body.pan}`);
+
                 await t.set(kycRef, {
                     ...req.body,
                     associatedEmployee: req.body.userId || token.uid,
@@ -58,20 +61,21 @@ module.exports = app => {
                     selectedUserId: req.body.userId || '',
                     author: token.email,
                     createdAt: new Date(),
+                    searchKeywords,
                 });
-                res.send({success: `Customer KYC created successfully with Id: ${kycId}`});
+                res.send({ success: `Customer KYC created successfully with Id: ${kycId}` });
             });
         } catch (e) {
             console.log(e)
             if (!errorSent) {
-                res.send({error: 'Failed to create customer KYC'});
+                res.send({ error: 'Failed to create customer KYC' });
             }
         }
     });
 
     app.post('/api/member/update-member', async function (req, res) {
         const token = req.user; // Get user from the middleware
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
 
         // Ensure member ID is provided in the request body for the update
         if (!req.body.id) {
@@ -128,6 +132,8 @@ module.exports = app => {
                     }
                 }
 
+                const searchKeywords = generateKeywords(`${memberIdToUpdate} ${req.body.name || memberData.name} ${req.body.phone || memberData.phone} ${req.body.aadhar || memberData.aadhar} ${req.body.pan || memberData.pan}`);
+
                 await t.update(kycRef, {
                     ...req.body,
                     associatedEmployee: memberData.associatedEmployee || req.body.userId || token.uid,
@@ -135,6 +141,7 @@ module.exports = app => {
                     selectedUserId: req.body.userId || '',
                     updatedBy: token.email,
                     updatedAt: new Date(),
+                    searchKeywords,
                 });
             });
 
@@ -157,7 +164,7 @@ module.exports = app => {
 
     app.post('/api/member/delete-member', async function (req, res) {
         const token = req.user; // Get user from the middleware
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
 
         const bankId = req.body.bankId || token.bankId;
         try {
@@ -186,14 +193,14 @@ module.exports = app => {
 
 
         } catch (e) {
-            res.send({error: 'Failed to Delete. Error: ' + e.message});
+            res.send({ error: 'Failed to Delete. Error: ' + e.message });
         }
     });
 
     app.post('/api/member/view-members', async function (req, res) {
         const token = req.user; // Get user from the middleware
 
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
 
         try {
             const members = [];
@@ -210,118 +217,154 @@ module.exports = app => {
                     pan: String(doc.data().pan),
                 });
             });
-            if (members.length === 0) return res.send({error: 'No member found with selected date range'});
-            return res.send({success: 'Successfully fetched member details', data: members});
+            if (members.length === 0) return res.send({ error: 'No member found with selected date range' });
+            return res.send({ success: 'Successfully fetched member details', data: members });
         } catch (error) {
             console.error('Error fetching members:', error);
-            res.send({error: 'Failed to fetch member details. Try again...'});
+            res.send({ error: 'Failed to fetch member details. Try again...' });
 
         }
     });
 
     app.post('/api/member/search-members', async function (req, res) {
         const token = req.user; // Get user from the middleware
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
 
         try {
             const bankId = req.body.bankId || token.bankId;
-
             const members = [];
-            let searchField = '';
-            if (req.body.parameter === 'name') {
-                searchField = 'name';
-            } else if (req.body.parameter === 'aadhar') {
-                searchField = 'aadhar';
-            } else if (req.body.parameter === 'pan') {
-                searchField = 'pan';
-            } else if (req.body.parameter === 'phone') {
-                searchField = 'phone';
-            } else {
-                return res.send({error: 'Invalid search parameter'});
-            }
+            const searchValue = req.body.value.toLowerCase().trim();
 
-            const searchValue = req.body.value;
+            if (!searchValue) return res.send({ error: 'Please enter a search value' });
 
-            const nextValue = searchValue.slice(0, -1) + String.fromCharCode(searchValue.slice(-1).charCodeAt(0) + 1);
-            const kycData = await db.collection(bankId).doc('kyc').collection('member-kyc')
-                .where(searchField, '>=', searchValue)
-                .where(searchField, '<', nextValue)
-                .get();
+            // Use array-contains for tokenized search
+            // Note: Firestore array-contains only matches one element. 
+            // For multi-token search we usually need multiple where clauses (limited to 10 tokens)
+            // or we use the first token and filter the rest client-side for better UX.
+            const tokens = searchValue.split(/[\s\-_,.]+/).filter(t => t.length > 0);
+
+            let query = db.collection(bankId).doc('kyc').collection('member-kyc');
+
+            // Start with the first token for primary filtering
+            query = query.where('searchKeywords', 'array-contains', tokens[0]);
+
+            const kycData = await query.limit(50).get(); // Limit results for performance
+
             kycData.forEach((doc) => {
-                members.push({
-                    id: doc.id,
-                    ...doc.data(),
-                    name: doc.data().name,
-                    guardian: doc.data().guardian,
-                    joiningDate: doc.data().date,
-                    address: doc.data().address,
-                    phone: doc.data().phone,
-                    aadhar: doc.data().aadhar,
-                    pan: doc.data().pan,
-                    label: `${doc.id} - ${doc.data().name}`,
-                    active: doc.data().active !== false,
-                });
+                const data = doc.data();
+                const combinedText = `${doc.id} ${data.name} ${data.phone} ${data.aadhar} ${data.pan}`.toLowerCase();
+
+                // Client-side refinement for multi-token matching
+                const matchesAll = tokens.every(token => combinedText.includes(token));
+
+                if (matchesAll) {
+                    members.push({
+                        id: doc.id,
+                        ...data,
+                        name: data.name,
+                        guardian: data.guardian,
+                        joiningDate: data.date,
+                        address: data.address,
+                        phone: data.phone,
+                        aadhar: data.aadhar,
+                        pan: data.pan,
+                        label: `${doc.id} - ${data.name}`,
+                        active: data.active !== false,
+                    });
+                }
             });
-            if (members.length === 0) return res.send({error: 'No member found with parameters: ' + req.body.value});
-            return res.send({success: 'Successfully fetched member details', data: members});
+
+            if (members.length === 0) return res.send({ error: 'No member found with parameters: ' + req.body.value });
+            return res.send({ success: 'Successfully fetched member details', data: members });
         } catch (error) {
             console.error('Error searching members:', error);
-            res.send({error: 'Failed to search member details. Try again...'});
-
+            res.send({ error: 'Failed to search member details. Try again...' });
         }
     });
 
     app.get('/api/member/get-all-members', async function (req, res) {
         const token = req.user; // Get user from the middleware
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
 
         try {
             const members = [];
             const employees = {};
             const bankId = req.query.bankId || token.bankId;
+            const limit = parseInt(req.query.limit) || 50;
+            const lastVisibleId = req.query.lastVisible;
+            const searchValue = req.query.search ? req.query.search.toLowerCase().trim() : '';
 
             const userProfileInfo = await db.collection(token.bankId).doc('admin').collection('users').doc(token.uid).get();
             let kycColRef = db.collection(bankId).doc('kyc').collection('member-kyc');
+
             if (token.role !== 'root' && token.role !== 'admin' && userProfileInfo.data()?.accessLevel?.fullDataAccess !== true) {
                 kycColRef = kycColRef.where('associatedEmployee', '==', token.uid);
             }
 
-            // Fetch Employee Details
+            if (searchValue) {
+                const tokens = searchValue.split(/[\s\-_,.]+/).filter(t => t.length > 0);
+                kycColRef = kycColRef.where('searchKeywords', 'array-contains', tokens[0]);
+            }
+
+            kycColRef = kycColRef.orderBy('createdAt', 'desc').limit(limit);
+
+            if (lastVisibleId) {
+                const lastDoc = await db.collection(bankId).doc('kyc').collection('member-kyc').doc(lastVisibleId).get();
+                if (lastDoc.exists) {
+                    kycColRef = kycColRef.startAfter(lastDoc);
+                }
+            }
+
+            // Fetch Employee Details (Cached briefly in memory for this request)
             const getEmployees = await db.collection(bankId).doc('admin').collection('users').get();
             getEmployees.forEach(function (employee) {
-                employees[employee.id] = {id: employee.id, ...employee.data()};
+                employees[employee.id] = { id: employee.id, ...employee.data() };
             });
 
             const kycData = await kycColRef.get();
             kycData.forEach((doc) => {
-                const associatedEmployee = doc.data().associatedEmployee;
+                const data = doc.data();
+                if (searchValue) {
+                    const tokens = searchValue.split(/[\s\-_,.]+/).filter(t => t.length > 0);
+                    const combinedText = `${doc.id} ${data.name} ${data.phone} ${data.aadhar} ${data.pan}`.toLowerCase();
+                    if (!tokens.every(token => combinedText.includes(token))) return;
+                }
 
+                const associatedEmployee = data.associatedEmployee;
                 members.push({
-                    label: `${doc.id} - ${doc.data().name}`,
+                    label: `${doc.id} - ${data.name}`,
                     id: doc.id,
-                    ...doc.data(),
+                    ...data,
                     agentName: employees[associatedEmployee] ? employees[associatedEmployee].name : '',
                     agentEmail: employees[associatedEmployee] ? employees[associatedEmployee].email : '',
                 });
             });
-            if (members.length === 0) return res.send({error: 'No member found. Please add new member'});
-            return res.send({success: 'Successfully fetched member details', data: members});
+
+            if (members.length === 0 && !lastVisibleId && !searchValue) {
+                return res.send({ error: 'No member found. Please add new member' });
+            }
+
+            return res.send({
+                success: 'Successfully fetched member details',
+                data: members,
+                lastVisible: kycData.docs.length > 0 ? kycData.docs[kycData.docs.length - 1].id : null
+            });
 
         } catch (error) {
             console.error('Error fetching members:', error);
-            res.send({error: 'Failed to fetch all member details. Try again...'});
+            res.send({ error: 'Failed to fetch all member details. Try again...' });
         }
     });
 
     app.get('/api/member/get-member-by-id/:memberId', async function (req, res) {
         const token = req.user; // Get user from the middleware
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
         const memberId = req.params.memberId;
 
         try {
             const kycData = await db.collection(token.bankId).doc('kyc').collection('member-kyc').doc(memberId).get();
-            if (!kycData.exists) return res.send({error: 'No member found with selected Id'});
-            if (kycData.data().active === false) return res.send({error: 'Member is inactive. Please Activate the member first'});
+            if (!kycData.exists) return res.send({ error: 'No member found with selected Id' });
+            if (kycData.data().active === false) return res.send({ error: 'Member is inactive. Please Activate the member first' });
             return res.send({
                 success: 'Successfully fetched member details',
                 ...kycData.data(),
@@ -329,18 +372,18 @@ module.exports = app => {
             });
         } catch (error) {
             console.error('Error fetching member by ID:', error);
-            res.send({error: 'Failed to fetch member by id.'});
+            res.send({ error: 'Failed to fetch member by id.' });
         }
     });
 
     app.post('/api/member/get-users-by-bank-restrictive', async function (req, res) {
         const token = req.user; // Get user from the middleware
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
 
         try {
             const applicableUsers = [];
             const bankId = req.body.bankId || token.bankId;
-            if (!token.bankId) return res.send({error: 'Unauthorized request. Try logging in again...'});
+            if (!token.bankId) return res.send({ error: 'Unauthorized request. Try logging in again...' });
 
             const userColRef = await db.collection(bankId).doc('admin').collection('users').get();
             userColRef.forEach(doc => {
@@ -352,16 +395,16 @@ module.exports = app => {
                 });
             });
 
-            res.send({success: `Successfully fetched bank users`, data: applicableUsers});
+            res.send({ success: `Successfully fetched bank users`, data: applicableUsers });
         } catch (error) {
             console.error('Error fetching users by bank:', error);
-            return res.send({error: 'Failed to fetch users. Try again...'});
+            return res.send({ error: 'Failed to fetch users. Try again...' });
         }
     });
 
     app.get('/api/member/get-associated-branch-restrictive', async function (req, res) {
         const token = req.user; // Get user from the middleware
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
 
         try {
             const bankColRef = db.collection('admin').doc('organization').collection('banks').where('mainBranchId', '==', token.bankId);
@@ -382,10 +425,10 @@ module.exports = app => {
                 label: mainBranchInfo.data().bankName,
                 isMainBranch: true,
             });
-            res.send({success: 'Successfully fetched registered banks', data: bankDropdown});
+            res.send({ success: 'Successfully fetched registered banks', data: bankDropdown });
         } catch (error) {
             console.error('Error fetching associated branches:', error);
-            res.send({error: 'Failed to fetch associated branches. Try again...'});
+            res.send({ error: 'Failed to fetch associated branches. Try again...' });
         }
     });
 
@@ -418,9 +461,9 @@ module.exports = app => {
             // Permission check
             const userProfileInfo = await db.collection(bankId).doc('admin').collection('users').doc(token.uid).get();
             const hasFullAccess =
-              token.role === 'root' ||
-              token.role === 'admin' ||
-              (userProfileInfo.exists && userProfileInfo.data()?.accessLevel?.fullDataAccess === true);
+                token.role === 'root' ||
+                token.role === 'admin' ||
+                (userProfileInfo.exists && userProfileInfo.data()?.accessLevel?.fullDataAccess === true);
 
             if (!hasFullAccess && memberData.associatedEmployee !== token.uid) {
                 return res.status(403).send({ error: 'You do not have permission to view this member.' });
@@ -436,16 +479,16 @@ module.exports = app => {
                 'cash-certificate',
                 'daily-savings',
                 'mis-deposit',
-               'thrift-fund'
+                'thrift-fund'
             ];
 
             // Fetch accounts + their transactions
             const accountPromises = accountTypes.map(async (type) => {
                 const query = db
-                  .collection(bankId)
-                  .doc('accounts')
-                  .collection(type)
-                  .where('applicants', 'array-contains', memberId);
+                    .collection(bankId)
+                    .doc('accounts')
+                    .collection(type)
+                    .where('applicants', 'array-contains', memberId);
 
                 const snapshot = await query.get();
                 const accounts = [];
@@ -546,7 +589,7 @@ module.exports = app => {
                         kycId: memberId,
                         phoneNumber: phone,
                         createdAt: new Date(),
-                    }, {merge: false});
+                    }, { merge: false });
                 }
 
                 // DISABLE PERMISSION

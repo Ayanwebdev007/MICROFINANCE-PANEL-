@@ -37,7 +37,7 @@ import ReactBSAlert from "react-bootstrap-sweetalert";
 import BankLogoUpload from "../../components/BankLogoUpload";
 import Select from "react-select";
 
-const UserCreation = () => {
+const UserUpdate = () => {
     const initInput = {
         bankId: '',
         userId: '',
@@ -103,16 +103,16 @@ const UserCreation = () => {
                     });
                 }
             }).catch(function (error) {
-            setAlert({
-                color: 'warning',
-                message: error.toLocaleString(),
-                autoDismiss: 7,
-                place: 'tc',
-                display: true,
-                sweetAlert: false,
-                timestamp: new Date().getTime(),
+                setAlert({
+                    color: 'warning',
+                    message: error.toLocaleString(),
+                    autoDismiss: 7,
+                    place: 'tc',
+                    display: true,
+                    sweetAlert: false,
+                    timestamp: new Date().getTime(),
+                });
             });
-        });
     }
 
     async function onSubmit() {
@@ -170,11 +170,11 @@ const UserCreation = () => {
         };
         let isValid = true;
         if (!inputValue.name) {
-            temp = {...temp, name: 'this is required'};
+            temp = { ...temp, name: 'this is required' };
             isValid = false;
         }
         if (!inputValue.email) {
-            temp = {...temp, email: 'this is required'};
+            temp = { ...temp, email: 'this is required' };
             isValid = false;
         }
         if (!inputValue.profilePic) {
@@ -194,14 +194,21 @@ const UserCreation = () => {
     }
 
     function getImageUrl(imageUrl) {
-        setUserInput({...userInput, profilePic: imageUrl});
+        setUserInput({ ...userInput, profilePic: imageUrl });
     }
 
     async function handleBankSelect(data) {
+        setUserInput({
+            ...initInput,
+            bankId: data.key,
+        });
+        setUserDropDown([]);
+
         try {
             setProgressbar(true);
             const fetchData = await axios.post(`/api/admin/get-users-by-bank`, {
                 bankId: data.key,
+                limit: 100 // Fetch a larger initial batch for users
             });
             setProgressbar(false);
             if (fetchData.data.success) {
@@ -217,6 +224,7 @@ const UserCreation = () => {
                 });
             }
         } catch (e) {
+            setProgressbar(false);
             setAlert({
                 color: 'danger',
                 message: e.toLocaleString(),
@@ -227,11 +235,22 @@ const UserCreation = () => {
                 timestamp: new Date().getTime(),
             });
         }
+    }
 
-        setUserInput({
-            ...userInput,
-            bankId: data.key,
-        });
+    async function handleUserSearch(inputValue) {
+        if (inputValue.length < 2) return;
+        try {
+            const fetchData = await axios.post(`/api/admin/get-users-by-bank`, {
+                bankId: userInput.bankId,
+                search: inputValue,
+                limit: 20
+            });
+            if (fetchData.data.success) {
+                setUserDropDown(fetchData.data.data);
+            }
+        } catch (e) {
+            console.error("User search failed", e);
+        }
     }
 
     function handleUserSelect(data) {
@@ -249,13 +268,13 @@ const UserCreation = () => {
             <div className="rna-container">
                 {alert.display &&
                     <CstNotification color={alert.color} message={alert.message} autoDismiss={alert.autoDismiss}
-                                     place={alert.place} timestamp={alert.timestamp}/>}
+                        place={alert.place} timestamp={alert.timestamp} />}
                 {alert.sweetAlert && <ReactBSAlert
                     success
-                    style={{display: "block", marginTop: "-100px"}}
+                    style={{ display: "block", marginTop: "-100px" }}
                     title="Success!"
-                    onConfirm={() => setAlert({...alert, sweetAlert: false})}
-                    onCancel={() => setAlert({...alert, sweetAlert: false})}
+                    onConfirm={() => setAlert({ ...alert, sweetAlert: false })}
+                    onCancel={() => setAlert({ ...alert, sweetAlert: false })}
                     confirmBtnBsStyle="success"
                     btnSize=""
                 >
@@ -285,7 +304,7 @@ const UserCreation = () => {
                                                             options={bankDropDown}
                                                             placeholder=''
                                                         />
-                                                        <p style={{color: 'red'}}>{cstError.bankId}</p>
+                                                        <p style={{ color: 'red' }}>{cstError.bankId}</p>
                                                     </FormGroup>
                                                 </Col>
                                                 <Col className="pr-1" md="6">
@@ -294,19 +313,20 @@ const UserCreation = () => {
                                                         <Select
                                                             className="react-select info"
                                                             classNamePrefix="react-select"
-                                                            name="bankSelect"
+                                                            name="userSelect"
                                                             onChange={handleUserSelect}
+                                                            onInputChange={handleUserSearch}
                                                             options={userDropDown}
-                                                            placeholder=''
+                                                            placeholder='Search by Name/ID...'
                                                         />
-                                                        <p style={{color: 'red'}}>{cstError.userId}</p>
+                                                        <p style={{ color: 'red' }}>{cstError.userId}</p>
                                                     </FormGroup>
                                                 </Col>
                                                 <Col className="pr-1" md="4">
                                                     <Label>Name</Label>
                                                     <FormGroup>
                                                         <Input type={'text'} value={userInput.name}
-                                                               onChange={(e) => setUserInput({...userInput, name: e.target.value.toUpperCase()})}
+                                                            onChange={(e) => setUserInput({ ...userInput, name: e.target.value.toUpperCase() })}
                                                         />
                                                     </FormGroup>
                                                 </Col>
@@ -320,7 +340,7 @@ const UserCreation = () => {
                                                     <Label>Phone Number</Label>
                                                     <FormGroup>
                                                         <Input type={'text'} value={userInput.phone}
-                                                               onChange={(e) => setUserInput({...userInput, phone: e.target.value})}
+                                                            onChange={(e) => setUserInput({ ...userInput, phone: e.target.value })}
                                                         />
                                                     </FormGroup>
                                                 </Col>
@@ -328,7 +348,7 @@ const UserCreation = () => {
                                                     <Label>Full Address with Pin Code</Label>
                                                     <FormGroup>
                                                         <Input type={'textarea'} value={userInput.address}
-                                                               aria-colspan={3} readOnly={true}/>
+                                                            aria-colspan={3} readOnly={true} />
                                                     </FormGroup>
                                                 </Col>
                                             </Row>
@@ -384,7 +404,7 @@ const UserCreation = () => {
                                             id="switch-tools"
                                             className="mt-n4"
                                             checked={module.tools}
-                                            onChange={() => setModule({...module, tools: !module.tools})}
+                                            onChange={() => setModule({ ...module, tools: !module.tools })}
                                         />
                                         <span className="ml-n2">(True) : Tools Module</span>
                                     </Col>
@@ -409,7 +429,7 @@ const UserCreation = () => {
                                             id="switch-member"
                                             className="mt-n4"
                                             checked={module.member}
-                                            onChange={() => setModule({...module, member: !module.member})}
+                                            onChange={() => setModule({ ...module, member: !module.member })}
                                         />
                                         <span className="ml-n2">(True) : Member Module</span>
                                     </Col>
@@ -420,7 +440,7 @@ const UserCreation = () => {
                                             id="switch-advisor"
                                             className="mt-n4"
                                             checked={module.advisor}
-                                            onChange={() => setModule({...module, advisor: !module.advisor})}
+                                            onChange={() => setModule({ ...module, advisor: !module.advisor })}
                                         />
                                         <span className="ml-n2">(True) : Advisor Module</span>
                                     </Col>
@@ -431,7 +451,7 @@ const UserCreation = () => {
                                             id="switch-employee"
                                             className="mt-n4"
                                             checked={module.employee}
-                                            onChange={() => setModule({...module, employee: !module.employee})}
+                                            onChange={() => setModule({ ...module, employee: !module.employee })}
                                         />
                                         <span className="ml-n2">(True) : Employee Module</span>
                                     </Col>
@@ -442,7 +462,7 @@ const UserCreation = () => {
                                             id="switch-savings"
                                             className="mt-n4"
                                             checked={module.savings}
-                                            onChange={() => setModule({...module, savings: !module.savings})}
+                                            onChange={() => setModule({ ...module, savings: !module.savings })}
                                         />
                                         <span className="ml-n2">(True) : Savings Module</span>
                                     </Col>
@@ -453,7 +473,7 @@ const UserCreation = () => {
                                             id="switch-deposit"
                                             className="mt-n4"
                                             checked={module.deposit}
-                                            onChange={() => setModule({...module, deposit: !module.deposit})}
+                                            onChange={() => setModule({ ...module, deposit: !module.deposit })}
                                         />
                                         <span className="ml-n2">(True) : Deposit Module</span>
                                     </Col>
@@ -464,7 +484,7 @@ const UserCreation = () => {
                                             id="switch-loan"
                                             className="mt-n4"
                                             checked={module.loan}
-                                            onChange={() => setModule({...module, loan: !module.loan})}
+                                            onChange={() => setModule({ ...module, loan: !module.loan })}
                                         />
                                         <span className="ml-n2">(True) : Loan Module</span>
                                     </Col>
@@ -475,7 +495,7 @@ const UserCreation = () => {
                                             id="switch-groupLoan"
                                             className="mt-n4"
                                             checked={module.groupLoan}
-                                            onChange={() => setModule({...module, groupLoan: !module.groupLoan})}
+                                            onChange={() => setModule({ ...module, groupLoan: !module.groupLoan })}
                                         />
                                         <span className="ml-n2">(True) : Group Loan Module</span>
                                     </Col>
@@ -486,7 +506,7 @@ const UserCreation = () => {
                                             id="switch-journal"
                                             className="mt-n4"
                                             checked={module.journal}
-                                            onChange={() => setModule({...module, journal: !module.journal})}
+                                            onChange={() => setModule({ ...module, journal: !module.journal })}
                                         />
                                         <span className="ml-n2">(True) : Journal Module</span>
                                     </Col>
@@ -497,7 +517,7 @@ const UserCreation = () => {
                                             id="switch-authorize"
                                             className="mt-n4"
                                             checked={module.authorize}
-                                            onChange={() => setModule({...module, authorize: !module.authorize})}
+                                            onChange={() => setModule({ ...module, authorize: !module.authorize })}
                                         />
                                         <span className="ml-n2">(True) : Authorization Module</span>
                                     </Col>
@@ -508,7 +528,7 @@ const UserCreation = () => {
                                             id="switch-report"
                                             className="mt-n4"
                                             checked={module.report}
-                                            onChange={() => setModule({...module, report: !module.report})}
+                                            onChange={() => setModule({ ...module, report: !module.report })}
                                         />
                                         <span className="ml-n2">(True) : Report Module</span>
                                     </Col>
@@ -519,7 +539,7 @@ const UserCreation = () => {
                                             id="switch-mobile"
                                             className="mt-n4"
                                             checked={module.mobile}
-                                            onChange={() => setModule({...module, mobile: !module.mobile})}
+                                            onChange={() => setModule({ ...module, mobile: !module.mobile })}
                                         />
                                         <span className="ml-n2">(True) : Mobile APP Module</span>
                                     </Col>
@@ -532,7 +552,7 @@ const UserCreation = () => {
                     <Col md="12" className={'text-center'}>
                         <CardFooter>
                             <center>
-                                <Spinner color="info" hidden={!progressbar}/>
+                                <Spinner color="info" hidden={!progressbar} />
                             </center>
                             <Button className="btn-fill" color="info" type="button" onClick={onSubmit}>
                                 Submit
@@ -545,4 +565,4 @@ const UserCreation = () => {
     );
 };
 
-export default UserCreation;
+export default UserUpdate;
