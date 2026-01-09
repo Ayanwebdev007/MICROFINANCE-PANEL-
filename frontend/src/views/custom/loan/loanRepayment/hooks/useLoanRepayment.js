@@ -3,8 +3,8 @@ import axios from "axios";
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import { useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
-import defaultSign from "../../../../assets/img/signature_placeholder.png";
-import defaultImage from "../../../../assets/img/image_placeholder.jpg";
+import defaultSign from "../../../../../assets/img/signature_placeholder.png";
+import defaultImage from "../../../../../assets/img/image_placeholder.jpg";
 
 const initValue = {
     transDate: new Date().toISOString().slice(0, 10),
