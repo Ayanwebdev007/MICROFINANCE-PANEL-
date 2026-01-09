@@ -24,7 +24,11 @@ import store from "./store";
 import axios from "axios";
 
 if (process.env.REACT_APP_API_URL) {
-    axios.defaults.baseURL = process.env.REACT_APP_API_URL;
+    let apiUrl = process.env.REACT_APP_API_URL;
+    if (!apiUrl.startsWith('http')) {
+        apiUrl = `https://${apiUrl}`;
+    }
+    axios.defaults.baseURL = apiUrl;
 }
 
 import "assets/css/nucleo-icons.css";

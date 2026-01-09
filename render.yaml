@@ -20,7 +20,6 @@ services:
     name: microfinance-frontend
     env: static
     plan: free
-    region: singapore
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/build
     envVars:
@@ -28,7 +27,7 @@ services:
         fromService:
           type: web
           name: microfinance-backend
-          property: url
+          property: host
       - key: REACT_APP_ENV
         value: prod
       # Firebase Configs (User must add these in Dashboard to keep them secret, or we add placeholders)
