@@ -5,7 +5,7 @@ services:
     runtime: node
     plan: free
     region: singapore
-    buildCommand: cd backend && npm install
+    buildCommand: cd backend && npm install && npx playwright install
     startCommand: cd backend && node server.js
     envVars:
       - key: PORT
