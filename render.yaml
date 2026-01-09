@@ -15,8 +15,9 @@ services:
         value: /etc/secrets/service_account.json
 
   # FRONTEND SERVICE
-  - type: static_site
+  - type: web # Using web type with static runtime
     name: microfinance-frontend
+    runtime: static
     region: singapore
     plan: free
     rootDir: frontend
