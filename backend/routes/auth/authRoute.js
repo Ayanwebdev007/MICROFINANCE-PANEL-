@@ -97,7 +97,7 @@ module.exports = app => {
             }
 
             const sessionCookie = await getAuth().createSessionCookie(idToken, { expiresIn });
-            const options = { maxAge: expiresIn, httpOnly: true, secure: true };
+            const options = { maxAge: expiresIn, httpOnly: true, secure: true, sameSite: 'none' };
             // const options = { maxAge: expiresIn, httpOnly: true};
 
             // Overwrite existing session if it exists (Allow re-login)

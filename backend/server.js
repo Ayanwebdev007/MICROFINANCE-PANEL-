@@ -80,7 +80,10 @@ server.use(
 const cors = require('cors');
 
 // Middlewares
-server.use(cors()); // Allow all origins for now (or specify frontend url)
+server.use(cors({
+  origin: ['https://microfinance-frontend01.onrender.com', 'http://localhost:3000', 'http://localhost:3001'],
+  credentials: true
+}));
 server.use(express.static("public"));
 server.use(bodyParser.json({ limit: "5mb" }));
 server.use(bodyParser.urlencoded({ extended: true }));

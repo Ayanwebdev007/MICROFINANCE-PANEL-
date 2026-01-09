@@ -36,6 +36,7 @@ if (process.env.REACT_APP_API_URL) {
         apiUrl = `https://${apiUrl}`;
     }
     axios.defaults.baseURL = apiUrl;
+    axios.defaults.withCredentials = true;
 }
 
 
