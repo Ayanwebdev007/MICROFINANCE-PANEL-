@@ -8,6 +8,8 @@ services:
     buildCommand: cd backend && npm install && npx playwright install
     startCommand: cd backend && node server.js
     envVars:
+      - key: PLAYWRIGHT_BROWSERS_PATH
+        value: /opt/render/project/src/backend/playwright
       - key: PORT
         value: 10000
       - key: CODE_ENV
