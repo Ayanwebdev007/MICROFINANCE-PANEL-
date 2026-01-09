@@ -85,9 +85,20 @@ async function initializeProduction() {
             disabled: false,
             renewDate: '2030-12-31',
             module: {
-                loan: true,
+                admin: true,
+                mobile: true,
+                tools: true,
+                verificationAPI: true,
+                member: true,
+                advisor: true,
+                employee: true,
                 savings: true,
-                accounting: true
+                deposit: true,
+                loan: true,
+                groupLoan: true,
+                journal: true,
+                authorize: true,
+                report: true
             }
         });
 
@@ -97,7 +108,22 @@ async function initializeProduction() {
             name: TEST_USER.displayName,
             email: TEST_USER.email,
             phone: '9999999999',
-            permissions: { 'ALL': true },
+            permissions: {
+                admin: true,
+                mobile: true,
+                tools: true,
+                verificationAPI: true,
+                member: true,
+                advisor: true,
+                employee: true,
+                savings: true,
+                deposit: true,
+                loan: true,
+                groupLoan: true,
+                journal: true,
+                authorize: true,
+                report: true
+            },
             accessLevel: 'admin',
             twoFAEnabled: false
         });
