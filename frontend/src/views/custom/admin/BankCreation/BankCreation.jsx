@@ -528,4 +528,4 @@ const BankCreation = () => {
     );
 };
 
-export default AddMember;
+export default BankCreation;
