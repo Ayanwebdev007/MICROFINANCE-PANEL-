@@ -26,10 +26,7 @@
     "chart.js": "3.9.1",
     "classnames": "2.5.1",
     "firebase": "^11.10.0",
-<<<<<<< HEAD
     "html2pdf.js": "^0.13.0",
-=======
->>>>>>> 08a3e09b7cf566c659945d7a0721562764214a9c
     "jquery": "^3.7.1",
     "match-sorter": "6.3.4",
     "moment": "2.30.1",
