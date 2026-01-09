@@ -14,10 +14,9 @@ services:
       - key: GOOGLE_APPLICATION_CREDENTIALS
         value: /etc/secrets/service_account.json
 
+staticSites:
   # FRONTEND SERVICE
-  - type: web # Using web type with static runtime
-    name: microfinance-frontend
-    runtime: static
+  - name: microfinance-frontend
     region: singapore
     plan: free
     rootDir: frontend
