@@ -1,10 +1,10 @@
-const {getFirestore} = require('firebase-admin/firestore');
-const {getAuth} = require("firebase-admin/auth");
+const { getFirestore } = require('firebase-admin/firestore');
+const { getAuth } = require("firebase-admin/auth");
 const axios = require("axios");
 const db = getFirestore();
 
 module.exports = app => {
-    app.post("/sessionLogin",  async function (req, res) {
+    app.post("/sessionLogin", async function (req, res) {
         const idToken = req.body.idToken?.toString();
         const expiresIn = 15 * 60 * 60 * 1000; // 15 hours in milliseconds
         const date = new Date().toISOString().slice(0, 10);
@@ -69,15 +69,15 @@ module.exports = app => {
                     const userOTP = await userOTPRef.get();
 
                     if (userOTP.exists) {
-                        const timeDiff = (Date.now() - userOTP.data().createdAt)/1000;
+                        const timeDiff = (Date.now() - userOTP.data().createdAt) / 1000;
                         if (userOTP.data().otp !== otp || timeDiff > 180) {
-                            return res.status(401).send({error: 'Invalid OTP. Please try again.'});
+                            return res.status(401).send({ error: 'Invalid OTP. Please try again.' });
                         }
                         await userOTPRef.delete();
-                    }else {
-                        return res.status(401).send({error: 'Invalid OTP. Please try again.'});
+                    } else {
+                        return res.status(401).send({ error: 'Invalid OTP. Please try again.' });
                     }
-                }else {
+                } else {
                     const otp = Math.floor(100000 + Math.random() * 900000);
                     await userOTPRef.set({
                         otp: otp.toString(),
@@ -100,28 +100,8 @@ module.exports = app => {
             const options = { maxAge: expiresIn, httpOnly: true, secure: true };
             // const options = { maxAge: expiresIn, httpOnly: true};
 
-            // Check for active session within 5 minutes
+            // Overwrite existing session if it exists (Allow re-login)
             const userSessionRef = db.collection('userSessions').doc(decodedIdToken.uid);
-            const userSessionSnap = await userSessionRef.get();
-
-            if (userSessionSnap.exists && Date.now() - userSessionSnap.data().lastActivity < 5 * 60 * 1000) {
-                return res.status(403).send({
-                    message: 'There is an active session. Only one session is allowed. Wait 5 minutes and try again.',
-                    data: {
-                        bankId: '',
-                        email: '',
-                        role: {},
-                        date,
-                        permissions: {},
-                        module: {},
-                        profile: '',
-                        minibar: 'sidebar-min',
-                        darkMode: 'dark-content',
-                        color: '',
-                        bankInfo: {},
-                    }
-                });
-            }
 
             // Save session info to Firestore
             await userSessionRef.set({
@@ -184,7 +164,7 @@ module.exports = app => {
 
     app.get('/api/auth/get-user', async function (req, res) {
         const token = req.user;
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
         const date = new Date().toISOString().slice(0, 10);
 
         try {
@@ -251,7 +231,7 @@ module.exports = app => {
 
     app.get('/api/auth/get-subscription-validity', async function (req, res) {
         const token = req.user;
-        if (!token) return res.status(401).send({error: 'You are not authorized. Please log in.'});
+        if (!token) return res.status(401).send({ error: 'You are not authorized. Please log in.' });
 
         try {
             const bankInfo = await db.collection(token.bankId).doc('admin').collection('bank-info').doc('details').get();
@@ -268,7 +248,7 @@ module.exports = app => {
                 });
             }
         } catch (error) {
-            res.status(403).send({error: 'You are not authorized. Please log in.'});
+            res.status(403).send({ error: 'You are not authorized. Please log in.' });
         }
     });
 };

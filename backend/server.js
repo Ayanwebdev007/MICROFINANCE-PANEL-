@@ -17,7 +17,7 @@ initializeApp({
 
 const db = getFirestore();
 
-const INACTIVITY_TIMEOUT = 15 * 60 * 1000;
+const INACTIVITY_TIMEOUT = 12 * 60 * 60 * 1000; // 12 hours
 
 // Middleware to check for user inactivity
 const inactivityCheck = async (req, res, next) => {
