@@ -1,0 +1,80 @@
+/* Remove all padding and margins from content for fixed sidebar layout */
+.fixed-sidebar-layout .main-panel > .content {
+    padding: 20px 3px 3px 3px !important;
+    margin: 20px 3px 3px 3px !important;
+}
+
+/* Also target content class directly for any other cases */
+.fixed-sidebar-layout .content {
+    padding: 20px 3px 3px 3px !important;
+    margin: 20px 3px 3px 3px !important;
+}
+
+/* Fix scrolling for main panel in fixed sidebar layout */
+.fixed-sidebar-layout .main-panel {
+    height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+/* Ensure content area can scroll properly */
+.fixed-sidebar-layout .main-panel > .content {
+    min-height: calc(100vh - 70px) !important; /* Adjust 70px based on your navbar height */
+    overflow-y: visible !important;
+    overflow-x: hidden !important;
+}
+
+/* Fix for PerfectScrollbar compatibility */
+.fixed-sidebar-layout .main-panel.ps {
+    overflow-y: auto !important;
+}
+
+/* Ensure body and html can scroll properly */
+.fixed-sidebar-layout {
+    height: 100vh !important;
+    overflow: hidden !important;
+}
+
+/* Dark dropdown caret for profile image */
+.navbar .dropdown-toggle .caret,
+.navbar .dropdown-toggle::after {
+    border-top-color: #333 !important;
+    color: #333 !important;
+}
+
+/* Additional targeting for Bootstrap dropdown carets */
+.navbar .nav-item .dropdown-toggle .caret,
+.navbar .nav-item .dropdown-toggle::after {
+    border-top-color: #333 !important;
+}
+
+/* Target the profile dropdown specifically */
+.navbar .photo + .caret,
+.navbar .photo + b.caret {
+    border-top-color: #333 !important;
+}
+
+/* For any pseudo-element carets */
+.navbar .dropdown-toggle::after {
+    border-top-color: #333 !important;
+}
+
+/* Wrap long selected value text */
+.react-select__single-value {
+    white-space: normal !important;
+    word-break: break-word;
+    line-height: 1.4;
+    max-width: 100%;
+}
+
+/* Allow height to grow */
+.react-select__control {
+    height: auto;
+    min-height: 20px;
+}
+
+/* Allow wrapping container */
+.react-select__value-container {
+    flex-wrap: wrap;
+}
+

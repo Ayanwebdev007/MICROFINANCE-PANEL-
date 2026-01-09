@@ -1,0 +1,567 @@
+/* Fixed Sidebar Layout specific styles */
+.fixed-sidebar-layout {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Hide the original floating sidebar when using fixed sidebar */
+.fixed-sidebar-layout .sidebar {
+    display: none !important;
+}
+
+/* Fixed Sidebar Container */
+.fixed-sidebar-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 260px;
+    height: 100vh;
+    background: linear-gradient(180deg, #6f42c1 0%, #007bff 100%);
+    z-index: 1000;
+    overflow: hidden;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.fixed-sidebar-wrapper {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0;
+    position: relative;
+}
+
+/* Main Panel adjustments for fixed sidebar */
+.fixed-sidebar-main-panel {
+    position: relative;
+    margin-left: 260px !important;
+    width: calc(100% - 260px) !important;
+    min-height: 100vh;
+    border-top: 2px solid #007bff;
+    background: linear-gradient(#1a1a1a, #0d0d0d);
+    float: none !important;
+}
+
+/* Content area adjustments */
+.fixed-sidebar-main-panel .content {
+    padding: 30px 30px 30px 30px !important;
+    min-height: calc(100vh - 140px);
+}
+
+/* Navbar adjustments for fixed sidebar layout */
+.fixed-sidebar-main-panel .navbar {
+    background: rgba(0, 0, 0, 0.1) !important;
+    color: white !important;
+    margin-bottom: 0;
+}
+
+.fixed-sidebar-main-panel .navbar .navbar-brand {
+    color: white !important;
+}
+
+.fixed-sidebar-main-panel .navbar .nav-link {
+    color: white !important;
+}
+
+.fixed-sidebar-main-panel .navbar .navbar-toggler-icon {
+    color: white !important;
+}
+
+.fixed-sidebar-main-panel .navbar .navbar-text {
+    color: white !important;
+}
+
+/* Logo styles */
+.fixed-sidebar-container .logo {
+    position: relative;
+    padding: 20px 20px 20px 20px;
+    z-index: 4;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fixed-sidebar-container .logo a.logo-mini,
+.fixed-sidebar-container .logo a.logo-normal {
+    transition: all 0.3s ease;
+}
+
+.fixed-sidebar-container .logo a.logo-mini {
+    opacity: 1;
+    float: left;
+    width: 34px;
+    text-align: center;
+    margin-left: 10px;
+    margin-right: 12px;
+}
+
+.fixed-sidebar-container .logo a.logo-normal {
+    display: block;
+    opacity: 1;
+    transform: translateX(0px);
+}
+
+.fixed-sidebar-container .logo .simple-text {
+    text-transform: uppercase;
+    padding: 10px 0;
+    display: block;
+    white-space: nowrap;
+    font-size: 16px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 400;
+    line-height: 30px;
+    overflow: hidden;
+}
+
+.fixed-sidebar-container .logo .logo-img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.fixed-sidebar-container .logo .logo-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Navigation styles */
+.fixed-sidebar-container .nav {
+    margin-top: 20px;
+    display: block;
+    padding: 0 15px;
+}
+
+.fixed-sidebar-container .nav li {
+    list-style: none;
+}
+
+.fixed-sidebar-container .nav li > a {
+    margin: 8px 0;
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    display: block;
+    text-decoration: none;
+    position: relative;
+    text-transform: uppercase;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 12px 15px;
+    line-height: 20px;
+    transition: all 0.3s ease;
+}
+
+.fixed-sidebar-container .nav li:hover > a,
+.fixed-sidebar-container .nav li.active > a {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transform: translateX(5px);
+}
+
+.fixed-sidebar-container .nav li.active > a::before {
+    content: "";
+    position: absolute;
+    height: 6px;
+    width: 6px;
+    top: 50%;
+    left: -3px;
+    background: #fff;
+    border-radius: 50%;
+    transform: translateY(-50%);
+}
+
+.fixed-sidebar-container .nav li > a i {
+    font-size: 18px;
+    float: left;
+    margin-right: 15px;
+    line-height: 20px;
+    width: 20px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    position: relative;
+}
+
+.fixed-sidebar-container .nav li > a p {
+    margin: 0;
+    line-height: 20px;
+    position: relative;
+    display: block;
+    height: auto;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+}
+
+.fixed-sidebar-container .nav li > a .caret {
+    top: 50%;
+    position: absolute;
+    right: 15px;
+    transform: translateY(-50%);
+}
+
+/* Collapse menu styles */
+.fixed-sidebar-container .nav li > a + div .nav {
+    margin-top: 5px;
+}
+
+.fixed-sidebar-container .nav li > a + div .nav li > a {
+    margin-top: 0;
+    padding: 8px 15px 8px 45px;
+    font-size: 11px;
+}
+
+/* Color variants */
+.fixed-sidebar-container[data="blue"] {
+    background: linear-gradient(180deg, #007bff 0%, #0056b3 100%);
+}
+
+.fixed-sidebar-container[data="green"] {
+    background: linear-gradient(180deg, #28a745 0%, #1e7e34 100%);
+}
+
+.fixed-sidebar-container[data="orange"] {
+    background: linear-gradient(180deg, #fd7e14 0%, #e55a00 100%);
+}
+
+.fixed-sidebar-container[data="red"] {
+    background: linear-gradient(180deg, #dc3545 0%, #bd2130 100%);
+}
+
+.fixed-sidebar-container[data="primary"] {
+    background: linear-gradient(180deg, #6f42c1 0%, #5a32a3 100%);
+}
+
+/* Sidebar mini icon styles */
+.fixed-sidebar-container .sidebar-mini-icon {
+    text-transform: uppercase;
+    width: 34px;
+    margin-right: 10px;
+    margin-left: 0;
+    font-size: 12px;
+    text-align: center;
+    line-height: 20px;
+    position: relative;
+    float: left;
+    z-index: 1;
+    display: inherit;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.fixed-sidebar-container .sidebar-normal {
+    margin: 0;
+    position: relative;
+    transform: translateX(0px);
+    opacity: 1;
+    white-space: nowrap;
+    display: block;
+    line-height: 20px;
+    z-index: 1;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Perfect scrollbar styles */
+.fixed-sidebar-wrapper .ps__rail-y {
+    background-color: transparent !important;
+}
+
+.fixed-sidebar-wrapper .ps__thumb-y {
+    background-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Responsive design */
+@media (max-width: 991px) {
+    .fixed-sidebar-container {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .fixed-sidebar-container.open {
+        transform: translateX(0);
+    }
+
+    .fixed-sidebar-main-panel {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    .fixed-sidebar-main-panel .content {
+        padding: 30px 15px 30px 15px !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .fixed-sidebar-main-panel .content {
+        padding: 20px 10px 20px 10px !important;
+    }
+}
+
+/* Override any conflicting styles from the original sidebar */
+.fixed-sidebar-layout .main-panel > .content {
+    padding: 30px 30px 30px 30px !important;
+}
+
+.fixed-sidebar-layout .main-panel {
+    border-top: 2px solid #007bff !important;
+}
+
+.fixed-sidebar-layout .main-panel[data="blue"] {
+    border-top: 2px solid #007bff !important;
+}
+
+.fixed-sidebar-layout .main-panel[data="green"] {
+    border-top: 2px solid #28a745 !important;
+}
+
+.fixed-sidebar-layout .main-panel[data="orange"] {
+    border-top: 2px solid #fd7e14 !important;
+}
+
+.fixed-sidebar-layout .main-panel[data="red"] {
+    border-top: 2px solid #dc3545 !important;
+}
+
+.fixed-sidebar-layout .main-panel[data="primary"] {
+    border-top: 2px solid #6f42c1 !important;
+}
+
+/* New Color Styles for FixedPlugin */
+
+/* Purple Color */
+.fixed-sidebar-container[data="purple"] {
+    background: linear-gradient(0deg, #8965e0 0%, #b347d0 100%);
+}
+
+.fixed-sidebar-container[data="purple"] .nav li > a:hover,
+.fixed-sidebar-container[data="purple"] .nav li > a:focus {
+    background: rgba(137, 101, 224, 0.2);
+}
+
+.fixed-sidebar-container[data="purple"] .nav li.active > a {
+    background: rgba(137, 101, 224, 0.3);
+}
+
+/* Teal Color */
+.fixed-sidebar-container[data="teal"] {
+    background: linear-gradient(0deg, #11cdef 0%, #1171ef 100%);
+}
+
+.fixed-sidebar-container[data="teal"] .nav li > a:hover,
+.fixed-sidebar-container[data="teal"] .nav li > a:focus {
+    background: rgba(17, 205, 239, 0.2);
+}
+
+.fixed-sidebar-container[data="teal"] .nav li.active > a {
+    background: rgba(17, 205, 239, 0.3);
+}
+
+/* Cyan Color */
+.fixed-sidebar-container[data="cyan"] {
+    background: linear-gradient(0deg, #2bffc6 0%, #2bffa6 100%);
+}
+
+.fixed-sidebar-container[data="cyan"] .nav li > a:hover,
+.fixed-sidebar-container[data="cyan"] .nav li > a:focus {
+    background: rgba(43, 255, 198, 0.2);
+}
+
+.fixed-sidebar-container[data="cyan"] .nav li.active > a {
+    background: rgba(43, 255, 198, 0.3);
+}
+
+/* Dark Color */
+.fixed-sidebar-container[data="dark"] {
+    background: linear-gradient(0deg, #212529 0%, #16181b 100%);
+}
+
+.fixed-sidebar-container[data="dark"] .nav li > a:hover,
+.fixed-sidebar-container[data="dark"] .nav li > a:focus {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.fixed-sidebar-container[data="dark"] .nav li.active > a {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Light Dark Color */
+.fixed-sidebar-container[data="light-dark"] {
+    background: linear-gradient(0deg, #32325d 0%, #2c2c54 100%);
+}
+
+.fixed-sidebar-container[data="light-dark"] .nav li > a:hover,
+.fixed-sidebar-container[data="light-dark"] .nav li > a:focus {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.fixed-sidebar-container[data="light-dark"] .nav li.active > a {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Indigo Color */
+.fixed-sidebar-container[data="indigo"] {
+    background: linear-gradient(0deg, #5603ad 0%, #7b1fa2 100%);
+}
+
+.fixed-sidebar-container[data="indigo"] .nav li > a:hover,
+.fixed-sidebar-container[data="indigo"] .nav li > a:focus {
+    background: rgba(86, 3, 173, 0.2);
+}
+
+.fixed-sidebar-container[data="indigo"] .nav li.active > a {
+    background: rgba(86, 3, 173, 0.3);
+}
+
+/* Pink Color */
+.fixed-sidebar-container[data="pink"] {
+    background: linear-gradient(0deg, #f3a4b5 0%, #f48fb1 100%);
+}
+
+.fixed-sidebar-container[data="pink"] .nav li > a:hover,
+.fixed-sidebar-container[data="pink"] .nav li > a:focus {
+    background: rgba(243, 164, 181, 0.2);
+}
+
+.fixed-sidebar-container[data="pink"] .nav li.active > a {
+    background: rgba(243, 164, 181, 0.3);
+}
+
+/* Yellow Color */
+.fixed-sidebar-container[data="yellow"] {
+    background: linear-gradient(0deg, #ffd600 0%, #ffeb3b 100%);
+}
+
+.fixed-sidebar-container[data="yellow"] .nav li > a:hover,
+.fixed-sidebar-container[data="yellow"] .nav li > a:focus {
+    background: rgba(255, 214, 0, 0.2);
+}
+
+.fixed-sidebar-container[data="yellow"] .nav li.active > a {
+    background: rgba(255, 214, 0, 0.3);
+}
+
+.fixed-sidebar-container[data="yellow"] .nav li > a,
+.fixed-sidebar-container[data="yellow"] .nav li > a p,
+.fixed-sidebar-container[data="yellow"] .nav li > a span {
+    color: #333 !important;
+}
+
+/* Gray Color */
+.fixed-sidebar-container[data="gray"] {
+    background: linear-gradient(0deg, #6c757d 0%, #868e96 100%);
+}
+
+.fixed-sidebar-container[data="gray"] .nav li > a:hover,
+.fixed-sidebar-container[data="gray"] .nav li > a:focus {
+    background: rgba(108, 117, 125, 0.2);
+}
+
+.fixed-sidebar-container[data="gray"] .nav li.active > a {
+    background: rgba(108, 117, 125, 0.3);
+}
+
+/* Light Color */
+.fixed-sidebar-container[data="light"] {
+    background: linear-gradient(0deg, #adb5bd 0%, #ced4da 100%);
+}
+
+.fixed-sidebar-container[data="light"] .nav li > a:hover,
+.fixed-sidebar-container[data="light"] .nav li > a:focus {
+    background: rgba(173, 181, 189, 0.2);
+}
+
+.fixed-sidebar-container[data="light"] .nav li.active > a {
+    background: rgba(173, 181, 189, 0.3);
+}
+
+.fixed-sidebar-container[data="light"] .nav li > a,
+.fixed-sidebar-container[data="light"] .nav li > a p,
+.fixed-sidebar-container[data="light"] .nav li > a span {
+    color: #333 !important;
+}
+
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle {
+    display: none; /* Hidden on desktop */
+    position: fixed;
+    top: 13px;
+    left: 20px;
+    /* This z-index value ensures the button is on top of other elements */
+    z-index: 1051;
+    background: transparent;
+    border: none;
+    color: #000;
+    font-size: 24px;
+    padding: 0;
+    cursor: pointer;
+}
+
+/* Sidebar Overlay for mobile */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1029; /* Below sidebar, above content */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s 0.3s;
+}
+
+.sidebar-overlay.show {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease;
+}
+
+/* Update your existing responsive styles */
+@media (max-width: 991px) {
+    .fixed-sidebar-container {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1030; /* Ensure sidebar is on top of overlay */
+    }
+
+    .fixed-sidebar-container.open {
+        transform: translateX(0);
+    }
+
+    .fixed-sidebar-main-panel {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    .fixed-sidebar-main-panel .content {
+        /* Adjust top padding to make space for the mobile menu toggle button */
+        padding: 70px 15px 30px 15px !important;
+    }
+
+    .mobile-menu-toggle {
+        display: block; /* Show the toggle button */
+        position: fixed;
+        top: 13px;
+        left: 20px;
+        z-index: 1031;
+        background: transparent;
+        border: none;
+        color: #000; /* Changed from #fff to #000 for black color */
+        font-size: 24px;
+        padding: 0;
+        cursor: pointer;
+    }
+
+    /* Add this rule to hide the old hamburger icon */
+    .navbar-toggler {
+        display: none !important;
+    }
+}
+
+.fixed-sidebar-main-panel {
+    position: relative;
+    z-index: 2; /* Default z-index */
+}
+
+.sidebar-overlay.show ~ .fixed-sidebar-main-panel {
+    z-index: 0; /* Lower z-index when sidebar is open */
+}

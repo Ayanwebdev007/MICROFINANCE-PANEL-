@@ -1,0 +1,138 @@
+
+.fixed-sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 250px;
+  background: #1e1e2f;
+  z-index: 1000;
+  transition: all 0.3s;
+  box-shadow: 0 0 45px 0 rgba(0, 0, 0, 0.6);
+  overflow-y: auto;
+}
+
+.fixed-sidebar.minimized {
+  width: 80px;
+}
+
+.main-panel {
+  margin-left: 250px;
+  transition: all 0.3s;
+}
+
+.main-panel.sidebar-mini {
+  margin-left: 80px;
+}
+
+.sidebar-wrapper {
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+  padding: 0 15px;
+}
+
+.sidebar-header {
+  padding: 20px 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-header .logo {
+  height: 30px;
+  display: block;
+  margin: 0 auto;
+}
+
+.nav-item {
+  margin: 5px 0;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.nav-link {
+  padding: 10px 15px;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+}
+
+.nav-link i {
+  margin-right: 15px;
+  font-size: 18px;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.nav-link.active {
+  background: #e14eca;
+  color: #ffffff;
+}
+
+/* Scrollbar styling */
+.sidebar-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-wrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+/* Minimize button styles */
+.sidebar-minimize-btn {
+  position: absolute;
+  right: -12px;
+  top: 20px;
+  background: #1e1e2f;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+  .fixed-sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .fixed-sidebar.show {
+    transform: translateX(0);
+  }
+  
+  .main-panel {
+    margin-left: 0;
+  }
+  
+  .main-panel.sidebar-mini {
+    margin-left: 0;
+  }
+  
+  .sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+  }
+  
+  .sidebar-overlay.show {
+    display: block;
+  }
+}
