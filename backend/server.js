@@ -2,20 +2,36 @@ const express = require('express');
 const helmet = require("helmet");
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const { initializeApp } = require('firebase-admin/app');
-const { getAuth } = require("firebase-admin/auth");
-const { getFirestore } = require("firebase-admin/firestore");
-
-const { applicationDefault } = require("firebase-admin/app");
+const admin = require('firebase-admin');
+const fs = require('fs');
+const path = require('path');
 
 require('dotenv').config();
 
-initializeApp({
-  credential: applicationDefault(),
-  projectId: 'microfinance-db'
-});
+// Standardized Firebase Initialization
+const SERVICE_ACCOUNT_PATH = process.env.GOOGLE_APPLICATION_CREDENTIALS || './service_account.json';
+try {
+  const resolvedPath = path.resolve(__dirname, SERVICE_ACCOUNT_PATH);
+  if (fs.existsSync(resolvedPath)) {
+    const serviceAccount = JSON.parse(fs.readFileSync(resolvedPath));
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      projectId: 'microfinance-db'
+    });
+    console.log('Firebase initialized with Service Account.');
+  } else {
+    admin.initializeApp({
+      credential: admin.credential.applicationDefault(),
+      projectId: 'microfinance-db'
+    });
+    console.log('Firebase initialized with Application Default Credentials.');
+  }
+} catch (e) {
+  console.error('Firebase Initialization Error:', e.message);
+}
 
-const db = getFirestore();
+const db = admin.firestore();
+const auth = admin.auth();
 
 const INACTIVITY_TIMEOUT = 12 * 60 * 60 * 1000; // 12 hours
 
@@ -27,7 +43,7 @@ const inactivityCheck = async (req, res, next) => {
   }
 
   try {
-    const decodedToken = await getAuth().verifySessionCookie(sessionCookie, false);
+    const decodedToken = await auth.verifySessionCookie(sessionCookie, false);
     const userSessionRef = db.collection('userSessions').doc(decodedToken.uid);
     const userSession = await userSessionRef.get();
 
@@ -36,9 +52,9 @@ const inactivityCheck = async (req, res, next) => {
 
       if (Date.now() - lastActivity > INACTIVITY_TIMEOUT) {
         // User is inactive, log them out
-        await getAuth().revokeRefreshTokens(decodedToken.uid);
+        await auth.revokeRefreshTokens(decodedToken.uid);
         await userSessionRef.delete(); // Clean up session doc
-        res.clearCookie('session');
+        res.clearCookie('session', { httpOnly: true, secure: true, sameSite: 'none' });
         return res.status(401).send({ error: 'Session expired due to inactivity.' });
       } else {
         // User is active, update the timestamp and attach user to request
@@ -59,7 +75,7 @@ const inactivityCheck = async (req, res, next) => {
     }
   } catch (err) {
     // Session cookie is invalid (e.g., expired), clear it
-    res.clearCookie('session');
+    res.clearCookie('session', { httpOnly: true, secure: true, sameSite: 'none' });
     return next();
   }
 };
@@ -88,6 +104,12 @@ server.use(express.static("public"));
 server.use(bodyParser.json({ limit: "5mb" }));
 server.use(bodyParser.urlencoded({ extended: true }));
 server.use(cookieParser());
+
+// Debug Middleware
+server.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - Origin: ${req.get('Origin')} - Cookie Present: ${!!req.cookies.session}`);
+  next();
+});
 
 server.use('/api', inactivityCheck);
 

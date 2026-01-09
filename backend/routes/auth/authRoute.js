@@ -1,7 +1,7 @@
-const { getFirestore } = require('firebase-admin/firestore');
-const { getAuth } = require("firebase-admin/auth");
+const admin = require('firebase-admin');
 const axios = require("axios");
-const db = getFirestore();
+const db = admin.firestore();
+const auth = admin.auth();
 
 module.exports = app => {
     app.post("/sessionLogin", async function (req, res) {
@@ -14,10 +14,10 @@ module.exports = app => {
         }
 
         try {
-            const decodedIdToken = await getAuth().verifyIdToken(idToken);
+            const decodedIdToken = await auth.verifyIdToken(idToken);
             const authAge = (Date.now() / 1000) - decodedIdToken.auth_time;
 
-            if (authAge >= 155) {
+            if (authAge >= 3600) { // 1 hour tolerance
                 return res.status(401).send("Invalid Credential!");
             }
 
@@ -96,7 +96,7 @@ module.exports = app => {
                 }
             }
 
-            const sessionCookie = await getAuth().createSessionCookie(idToken, { expiresIn });
+            const sessionCookie = await auth.createSessionCookie(idToken, { expiresIn });
             const options = { maxAge: expiresIn, httpOnly: true, secure: true, sameSite: 'none' };
             // const options = { maxAge: expiresIn, httpOnly: true};
 
@@ -145,11 +145,11 @@ module.exports = app => {
 
         try {
             // Decode the session cookie to get the uid
-            const decodedToken = await getAuth().verifySessionCookie(session);
+            const decodedToken = await auth.verifySessionCookie(session);
             const uid = decodedToken.uid;
 
             // Revoke tokens and delete session record
-            await getAuth().revokeRefreshTokens(uid);
+            await auth.revokeRefreshTokens(uid);
             await db.collection('userSessions').doc(uid).delete();
 
             // Clear cookie
