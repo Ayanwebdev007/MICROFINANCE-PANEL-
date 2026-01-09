@@ -16,7 +16,7 @@ services:
         value: /etc/secrets/service-account.json
 
   # Frontend Service
-  - type: static
+  - type: site
     name: microfinance-frontend
     plan: free
     region: singapore
