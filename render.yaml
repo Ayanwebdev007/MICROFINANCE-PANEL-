@@ -5,7 +5,7 @@ services:
     runtime: node
     region: singapore # Optional, defaults to Oregon
     plan: free # Optional
-    rootCommand: cd backend
+    rootDir: backend
     buildCommand: npm install && npx playwright install chromium
     startCommand: npm start
     envVars:
@@ -15,11 +15,11 @@ services:
         value: /etc/secrets/service_account.json
 
   # FRONTEND SERVICE
-  - type: static
+  - type: static_site
     name: microfinance-frontend
     region: singapore
     plan: free
-    rootCommand: cd frontend
+    rootDir: frontend
     buildCommand: npm install && npm run build
     publishDir: build
     envVars:
