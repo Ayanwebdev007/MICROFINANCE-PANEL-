@@ -61,7 +61,7 @@ const DesktopLogoSection = () => (
 
 const MobileHelpSection = () => (
     <div className="mobile-help-section">
-        <img src={googleCloudSecure} alt="googleCloudeSecureImage" className="bottom-img"/>
+        <img src={googleCloudSecure} alt="googleCloudeSecureImage" className="bottom-img" />
     </div>
 );
 
@@ -117,23 +117,23 @@ const MPanelLogin = () => {
 
         if (email && password) {
             setProgressbar(true);
-            if (userInput.idToken){
+            if (userInput.idToken) {
                 createSessionWithBackend(userInput.idToken, userInput.otp);
-            }else {
+            } else {
                 signInWithEmailAndPassword(auth, email, password)
-                    .then(async function ({user}) {
+                    .then(async function ({ user }) {
                         const idToken = await user.getIdToken();
                         createSessionWithBackend(idToken, '');
                     }).catch(function () {
-                    setAlert({
-                        color: 'danger',
-                        message: 'Invalid credential. Please enter valid username or password to continue',
-                        autoDismiss: 7,
-                        place: 'tc',
-                        timestamp: new Date().getTime(),
+                        setAlert({
+                            color: 'danger',
+                            message: 'Invalid credential. Please enter valid username or password to continue',
+                            autoDismiss: 7,
+                            place: 'tc',
+                            timestamp: new Date().getTime(),
+                        });
+                        setProgressbar(false);
                     });
-                    setProgressbar(false);
-                });
             }
         } else {
             setAlert({
@@ -148,11 +148,11 @@ const MPanelLogin = () => {
 
     async function subscriptionCheck() {
         axios.get("/api/auth/get-subscription-validity").then((data) => {
-            if(data.data?.valid){
+            if (data.data?.valid) {
                 console.log('Subscription is valid');
-            }else if(data.data?.daysLeft < 0){
+            } else if (data.data?.daysLeft < 0) {
                 window.alert(`Your subscription has expired. Please renew your subscription to avoid any disruption in service.`);
-            }else{
+            } else {
                 window.alert(`Your subscription is about to expire in ${data.data?.daysLeft} days. Please renew your subscription.`);
             }
         }).catch(() => {
@@ -161,12 +161,15 @@ const MPanelLogin = () => {
     }
 
     function createSessionWithBackend(idToken, otp) {
-        axios.post('/sessionLogin', {idToken: idToken, otp: otp})
+        axios.post('/sessionLogin', { idToken: idToken, otp: otp })
             .then(async function (loginData) {
-                if (loginData.data.twoFactorAuth === true){
+                if (loginData.data.twoFactorAuth === true) {
                     setTwoFA(true);
-                    setUserInput({...userInput, idToken: idToken});
+                    setUserInput({ ...userInput, idToken: idToken });
                 } else if (loginData.data.status === 'success') {
+                    if (loginData.data.sessionToken) {
+                        localStorage.setItem('sessionToken', loginData.data.sessionToken);
+                    }
                     await subscriptionCheck();
                     authDispatch(getAuthState(loginData.data.data));
                     navigate("/admin/dashboard");
@@ -182,25 +185,25 @@ const MPanelLogin = () => {
                 }
                 setProgressbar(false);
             }).catch(function (e) {
-            if (e.response && (e.response.status === 401 || e.response.status === 403)) {
-                setAlert({
-                    color: 'danger',
-                    message: e.response.data.message || 'Unauthorised Request. Please try again later',
-                    autoDismiss: 15,
-                    place: 'tc',
-                    timestamp: new Date().getTime(),
-                });
-            } else {
-                setAlert({
-                    color: 'danger',
-                    message: e.response?.data?.message || 'Something went wrong. Please try again later',
-                    autoDismiss: 7,
-                    place: 'tc',
-                    timestamp: new Date().getTime(),
-                });
-            }
-            setProgressbar(false);
-        });
+                if (e.response && (e.response.status === 401 || e.response.status === 403)) {
+                    setAlert({
+                        color: 'danger',
+                        message: e.response.data.message || 'Unauthorised Request. Please try again later',
+                        autoDismiss: 15,
+                        place: 'tc',
+                        timestamp: new Date().getTime(),
+                    });
+                } else {
+                    setAlert({
+                        color: 'danger',
+                        message: e.response?.data?.message || 'Something went wrong. Please try again later',
+                        autoDismiss: 7,
+                        place: 'tc',
+                        timestamp: new Date().getTime(),
+                    });
+                }
+                setProgressbar(false);
+            });
     }
 
     const handleResetPassword = React.useCallback(async () => {
@@ -270,7 +273,7 @@ const MPanelLogin = () => {
 
                                                         const inputs = e.currentTarget.parentElement.querySelectorAll('input');
                                                         const otp = Array.from(inputs).map(input => input.value).join('');
-                                                        setUserInput(prev => ({...prev, otp}));
+                                                        setUserInput(prev => ({ ...prev, otp }));
                                                     } else {
                                                         e.target.value = '';
                                                     }

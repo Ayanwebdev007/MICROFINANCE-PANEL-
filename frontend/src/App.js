@@ -1,14 +1,14 @@
-import {BrowserRouter, Navigate, Route, Routes} from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AuthLayout from "./layouts/Auth/Auth";
 import AdminLayout from "./layouts/Admin/Admin";
 import RTLLayout from "./layouts/RTL/RTL";
 import React from "react";
 
 import axios from "axios";
-import {getAuthState} from "./reducers/authReducer";
-import {useDispatch} from "react-redux";
+import { getAuthState } from "./reducers/authReducer";
+import { useDispatch } from "react-redux";
 
-import {AllCommunityModule, ModuleRegistry} from 'ag-grid-community';
+import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 import LoanDetailsPage from "./views/custom/loan/loanDetails/LoanDetails";
 import ViewTransaction from "./views/custom/loan/ViewTransaction/ViewTransaction";
 import GroupLoanDetailsPage from "./views/custom/groupLoan/GroupLoanDetails/GroupLoanDetails";
@@ -40,10 +40,10 @@ function App() {
     const [fetched, setFetched] = React.useState(false);
     // const [lastActivity, setLastActivity] = React.useState(Date.now());
 
-// Dispatch Auth validation on DOM load or auth state change
-//   const resetActivityTimer = React.useCallback(() => {
-//     setLastActivity(Date.now());
-//   }, []);
+    // Dispatch Auth validation on DOM load or auth state change
+    //   const resetActivityTimer = React.useCallback(() => {
+    //     setLastActivity(Date.now());
+    //   }, []);
 
     // const handleInactivityTimeout = React.useCallback(() => {
     //   if (window.location.pathname !== "/"){
@@ -61,6 +61,7 @@ function App() {
         axios.get("/api/auth/get-user").then((fetchUser) => {
             authDispatch(getAuthState(fetchUser.data));
         }).catch(() => {
+            localStorage.removeItem('sessionToken');
             authDispatch(
                 getAuthState({
                     loggedIn: false,
@@ -103,6 +104,7 @@ function App() {
             (error) => {
                 // Any status codes that falls outside the range of 2xx cause this function to trigger
                 if (error.response && error.response.status === 401) {
+                    localStorage.removeItem('sessionToken');
                     if (window.location.pathname !== "/") {
                         window.alert("Session has Expired. Please login again to continue.");
                         window.location.href = "/";
@@ -129,55 +131,55 @@ function App() {
     return (<>
         <BrowserRouter>
             <Routes>
-                <Route path="/auth/*" element={<AuthLayout/>}/>
-                <Route path="/admin/*" element={<AdminLayout/>}/>
+                <Route path="/auth/*" element={<AuthLayout />} />
+                <Route path="/admin/*" element={<AdminLayout />} />
 
                 {/*Custom Layout Routes*/}
-                <Route path="/member/*" element={<AdminLayout/>}/>
-                <Route path="/deposit/*" element={<AdminLayout/>}/>
-                <Route path="/loan/*" element={<AdminLayout/>}/>
-                <Route path="/authorization/*" element={<AdminLayout/>}/>
-                <Route path="/reports/*" element={<AdminLayout/>}/>
-                <Route path="/admin/*" element={<AdminLayout/>}/>
+                <Route path="/member/*" element={<AdminLayout />} />
+                <Route path="/deposit/*" element={<AdminLayout />} />
+                <Route path="/loan/*" element={<AdminLayout />} />
+                <Route path="/authorization/*" element={<AdminLayout />} />
+                <Route path="/reports/*" element={<AdminLayout />} />
+                <Route path="/admin/*" element={<AdminLayout />} />
 
                 <Route
                     exact
                     path="/"
-                    element={<MPanelLogin/>}
+                    element={<MPanelLogin />}
                 />
 
-                <Route path="*" element={<Navigate to="/" replace/>}/>
+                <Route path="*" element={<Navigate to="/" replace />} />
 
                 {/*Standalone Route */}
-                <Route path="/Active-Loan-Account/Details/:loanNo" element={<LoanDetailsPage/>}/>
-                <Route path="/Active-Loan-Account/Details/:loanNo/Transactions" element={<ViewTransaction/>}/>
-                <Route path="/Active-Group-Loan-Account/Details/:loanNo" element={<GroupLoanDetailsPage/>}/>
-                <Route path="/loan/loan-accounts/details/:account/emiSchedule" elemGroupLoanDetailsent={<LoanSchedulePage/>}/>
+                <Route path="/Active-Loan-Account/Details/:loanNo" element={<LoanDetailsPage />} />
+                <Route path="/Active-Loan-Account/Details/:loanNo/Transactions" element={<ViewTransaction />} />
+                <Route path="/Active-Group-Loan-Account/Details/:loanNo" element={<GroupLoanDetailsPage />} />
+                <Route path="/loan/loan-accounts/details/:account/emiSchedule" elemGroupLoanDetailsent={<LoanSchedulePage />} />
 
-                <Route path="/loan/loan-accounts/details/foreclose/:loanNo" element={<ForecloseLoanForm/>}/>
-                <Route path="/loan/foreclosure/review/:transactionId" element={<ReviewForeclosureRequest/>}/>
+                <Route path="/loan/loan-accounts/details/foreclose/:loanNo" element={<ForecloseLoanForm />} />
+                <Route path="/loan/foreclosure/review/:transactionId" element={<ReviewForeclosureRequest />} />
 
-                <Route path="/group-loan/foreclosure/review/:transactionId" element={<ReviewGroupForeclosureRequest/>}/>
+                <Route path="/group-loan/foreclosure/review/:transactionId" element={<ReviewGroupForeclosureRequest />} />
                 {/*savings route*/}
-                <Route path="/deposit/savings-accounts/details/:account" element={<SavingsAccountDetailsPage/>}/>
+                <Route path="/deposit/savings-accounts/details/:account" element={<SavingsAccountDetailsPage />} />
                 <Route path="/deposit/savings-accounts/details/:account/transactions"
-                       element={<SavingsAccountTransactions/>}/>
+                    element={<SavingsAccountTransactions />} />
 
                 {/*Deposit route*/}
-                <Route path="/deposit/accounts/details/:accountType/:accountId" element={<DepositAccountDetailsPage/>}/>
-                <Route path="/deposit/accounts-details/:account/transactionslist" element={<TransactionHistory/>}/>
+                <Route path="/deposit/accounts/details/:accountType/:accountId" element={<DepositAccountDetailsPage />} />
+                <Route path="/deposit/accounts-details/:account/transactionslist" element={<TransactionHistory />} />
 
                 {/*Member details */}
-                <Route path="/member/view-members/member-details/:id" element={<MemberDetailsPage/>}/>
-                <Route path="/member/view-members/member-details/membership-fee" element={<MembershipFeeForm/>}/>
+                <Route path="/member/view-members/member-details/:id" element={<MemberDetailsPage />} />
+                <Route path="/member/view-members/member-details/membership-fee" element={<MembershipFeeForm />} />
 
 
                 {/*ProfileScreen Route */}
-                <Route path="/user-profile" element={<Profile/>}/>
+                <Route path="/user-profile" element={<Profile />} />
                 {/*<Route path="/user-profile/reset-password" element={<ResetPassword/>} />*/}
 
                 {/* This is OOB Layout, will be implemented later if required*/}
-                <Route path="/rtl/*" element={<RTLLayout/>}/>
+                <Route path="/rtl/*" element={<RTLLayout />} />
             </Routes>
         </BrowserRouter>
     </>)

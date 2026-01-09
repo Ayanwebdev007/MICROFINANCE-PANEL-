@@ -30,14 +30,25 @@ import "assets/demo/demo.css";
 
 import App from "./App";
 
+axios.defaults.withCredentials = true;
+
 if (process.env.REACT_APP_API_URL) {
     let apiUrl = process.env.REACT_APP_API_URL;
     if (!apiUrl.startsWith('http')) {
         apiUrl = `https://${apiUrl}`;
     }
     axios.defaults.baseURL = apiUrl;
-    axios.defaults.withCredentials = true;
 }
+
+// Global interceptor to ensure withCredentials and Authorization header
+axios.interceptors.request.use(config => {
+    config.withCredentials = true;
+    const token = localStorage.getItem('sessionToken');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
 
 
 

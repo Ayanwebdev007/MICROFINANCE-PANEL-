@@ -37,13 +37,19 @@ const INACTIVITY_TIMEOUT = 12 * 60 * 60 * 1000; // 12 hours
 
 // Middleware to check for user inactivity
 const inactivityCheck = async (req, res, next) => {
-  const sessionCookie = req.cookies.session || "";
+  let sessionCookie = req.cookies.session || "";
+
+  // Support Authorization Header for cross-domain sessions on Render
+  if (!sessionCookie && req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    sessionCookie = req.headers.authorization.split('Bearer ')[1];
+  }
+
   if (!sessionCookie) {
-    return next(); // No cookie, proceed to the endpoint which will handle authorization
+    return next(); // No cookie or header, proceed to the endpoint which will handle authorization
   }
 
   try {
-    const decodedToken = await auth.verifySessionCookie(sessionCookie, false);
+    const decodedToken = await admin.auth().verifySessionCookie(sessionCookie, false);
     const userSessionRef = db.collection('userSessions').doc(decodedToken.uid);
     const userSession = await userSessionRef.get();
 
@@ -52,7 +58,7 @@ const inactivityCheck = async (req, res, next) => {
 
       if (Date.now() - lastActivity > INACTIVITY_TIMEOUT) {
         // User is inactive, log them out
-        await auth.revokeRefreshTokens(decodedToken.uid);
+        await admin.auth().revokeRefreshTokens(decodedToken.uid);
         await userSessionRef.delete(); // Clean up session doc
         res.clearCookie('session', { httpOnly: true, secure: true, sameSite: 'none' });
         return res.status(401).send({ error: 'Session expired due to inactivity.' });

@@ -128,7 +128,7 @@ module.exports = app => {
                 bankInfo: bankInfo || {},
             };
 
-            return res.status(200).send({ status: 'success', data: profileObj });
+            return res.status(200).send({ status: 'success', data: profileObj, sessionToken: sessionCookie });
 
         } catch (error) {
             console.error("Login error:", error);
