@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Loan Passbook</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 0 40px;
+        }
+        h2 {
+            text-align: center;
+        }
+        p {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+<h2>{{bankName}}</h2>
+<p style="text-align: center">{{bankAddress}}</p>
+<p style="text-align: center">{{bankRegCode}}</p>
+<hr>
+<p style="text-align: center">Loan Statement</p>
+<table style="width:100%; border-collapse:collapse; font-size:13px;">
+    <tbody>
+    <tr style="padding: 4px">
+        <td style="border:1px solid #000; padding:4px; font-weight:bold;">
+            Member Name :
+        </td>
+        <td style="border:1px solid #000; padding:2px;">
+            {{memberName}}
+        </td>
+        <td style="border:1px solid #000; padding:2px; font-weight:bold;">
+            Account No :
+        </td>
+        <td style="border:1px solid #000; padding:2px;">
+            {{accountNo}}
+        </td>
+    </tr>
+
+    <tr style="padding: 4px">
+        <td style="border:1px solid #000; padding:4px; font-weight:bold;">
+            Member Address :
+        </td>
+        <td style="border:1px solid #000; padding:2px;">
+            {{memberAddress}}
+        </td>
+        <td style="border:1px solid #000; padding:2px; font-weight:bold;">
+            Scheme :
+        </td>
+        <td style="border:1px solid #000; padding:2px;">
+            {{scheme}}
+        </td>
+    </tr>
+
+    <tr style="padding: 4px">
+        <td style="border:1px solid #000; padding:4px; font-weight:bold;">
+            Opening Date :
+        </td>
+        <td style="border:1px solid #000; padding:2px;">
+            {{openingDate}}
+        </td>
+        <td style="border:1px solid #000; padding:2px; font-weight:bold;">
+            Interest Rate :
+        </td>
+        <td style="border:1px solid #000; padding:2px;">
+            {{interestRate}}%
+        </td>
+    </tr><tr style="padding: 4px">
+        <td style="border:1px solid #000; padding:4px; font-weight:bold;">
+            Outstanding Balance :
+        </td>
+        <td style="border:1px solid #000; padding:2px;" colspan="3">
+            {{outstandingBalance}}
+        </td>
+    </tr>
+    </tbody>
+</table>
+<div style="text-align:center">
+    <p>Statement Period : {{statementPeriod}}</p>
+</div>
+<div>
+    <table style="width:100%; border-collapse:collapse; font-size:13px; margin-top:10px;">
+        <thead>
+        <tr style="background:#D3D3D3; color:#000000;">
+            <th style="border:1px solid #000; padding:4px; text-align:left;">
+                Date
+            </th>
+            <th style="border:1px solid #000; padding:4px; text-align:left;">
+                Transaction ID
+            </th>
+            <th style="border:1px solid #000; padding:4px; text-align:left;">
+                Particulars
+            </th>
+            <th style="border:1px solid #000; padding:4px; text-align:right;">
+                Debit
+            </th>
+            <th style="border:1px solid #000; padding:4px; text-align:right;">
+                Credit
+            </th>
+            <th style="border:1px solid #000; padding:4px; text-align:right;">
+                Balance
+            </th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <!-- Sample Row 1 -->
+        {{transactionsRow}}
+        </tbody>
+    </table>
+
+</div>
+<p style="text-align: center">End of Report</p>
+<p style="text-align: center; color: grey">This statement is system-generated and does not require any seal or signature.</p>
+</body>
+</html>
